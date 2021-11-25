@@ -1,0 +1,15 @@
+{
+  "name": "Sequential Mass URL Opener",
+  "description": "Opens each URL in list into tabs in window, but only if prior pages have finished loading.",
+  "version": "1.0",
+  "manifest_version": 3,
+  "action": {
+    "default_icon": "icon.png",
+    "default_popup": "popup.html"
+  },
+  "icons": {
+    "16": "icon.png",
+    "48": "icon.png",
+    "128": "icon.png"
+  }
+}

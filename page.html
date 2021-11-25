@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Open URLs When Loaded</title>
+</head>
+<body>
+    <div class="container" style="text-align: center; max-width: 769px; margin: auto;">
+        <div><p>
+            This tool will open a list of urls into a separate minimized window. 
+            Each tab will be opened once the prior tab has been loaded fully. Once 
+            all tabs have been opened, this tool's tab will close. As opposed to other 
+            mass-opening tools, this tool may be useful for: reducing the spike in 
+            bandwidth usage, avoiding 503 errors from making too many requests to the 
+            same website too quickly, etc. Click 'Open All' without any urls to see an 
+            example.
+        </p></div>
+        <style>textarea:focus-visible { outline: none; }</style>
+        <textarea id="theTextArea"
+            autofocus
+            placeholder="Paste links here, seperated by new line:"
+            rows="15"
+            cols="50"
+            spellcheck="false"
+            style="white-space: nowrap; border: 1px solid lightgray; border-radius: 5px;"
+        ></textarea>
+        <div>
+            <div style="width: 106px; display: inline-block;"></div>
+            <button id="theOpenButton">Open All</button>
+            <input id="incognitoCheckbox" type="checkbox" style="vertical-align: bottom;" checked>open in incognito</input>
+        </div>
+        <div>
+            <p>* Use version control for further changes to extension.</p>
+            <p>* Acknowledge tab deletion in same way as tab loading.</p>
+            <p>* Reload page after execution or window deletion, while keeping settings and url 
+                list intact. Have setting "Close tool when list is completed.".</p>
+            <p>* Have settings "Open tool in new window." and "Open tabs in same window as tool.". 
+                Default is false true.</p>
+            <p>* Include setting "Save url list in this tool.".</p>
+            <p>* Store whether or not to show Settings. Default to false.</p>
+        </div>
+    </div>
+    <script type="text/javascript" src="page.js"></script>
+</body>
+</html>
