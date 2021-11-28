@@ -108,11 +108,11 @@ const tabTitleCounter = {
     }
 };
 
-const button = document.getElementById("theOpenButton");
-button.onclick = () => {
-    button.disabled = true;
+const openButton = document.getElementById("theOpenButton");
+openButton.onclick = () => {
+    openButton.disabled = true;
     main();
     setTimeout(() => { // Prevent accidental multi-clicking of button.
-        button.disabled = false;
+        openButton.disabled = false;
     }, 1000);
 };
