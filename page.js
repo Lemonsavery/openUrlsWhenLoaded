@@ -64,13 +64,13 @@ var priorTabId = undefined;
 function openTabWhenPriorIsLoaded(index) {
     if (index >= urlList.length) { // Stop once urlList is fully iterated.
         console.log("All urls have been opened");
-        // return;
-        window.close(); // Brute force stop, because return isn't working.
+        return;
+        // window.close(); // Brute force stop, because return isn't working.
     }
 
-    chrome.tabs.onUpdated.addListener(thisListener = (tabId, info) => {
-        if (tabId === priorTabId && info.status === "complete") {
-            // The tab has loaded. Time to make another.
+    const thisListener = (tabId, info) => {
+        if (tabId === priorTabId && (info.status === "complete" || info.isWindowClosing !== undefined)) {
+            // The tab has loaded or been closed. Time to make another.
             const createTab = () => chrome.tabs.create({
                 "url": urlList[index],
                 "active": false,
@@ -82,6 +82,7 @@ function openTabWhenPriorIsLoaded(index) {
                 tabTitleCounter.iterate();
                 openTabWhenPriorIsLoaded(++index);
                 chrome.tabs.onUpdated.removeListener(thisListener);
+                chrome.tabs.onRemoved.removeListener(thisListener);
             })
             .catch((error) => {
                 if (error == "Error: Tabs cannot be edited right now (user may be dragging a tab).") {
@@ -89,6 +90,7 @@ function openTabWhenPriorIsLoaded(index) {
                 } else {
                     console.error(error);
                     chrome.tabs.onUpdated.removeListener(thisListener);
+                    chrome.tabs.onRemoved.removeListener(thisListener);
                     document.title = "*** ERROR ***";
                     alert(`ERROR\n\nOnly urls through ${urlList[index-1]} have been opened.`
                     +"\n\nThis openUrlsWhenLoaded page should be reloaded before being used again.");
@@ -102,7 +104,9 @@ function openTabWhenPriorIsLoaded(index) {
                 createTab();
             }
         }
-    });
+    }
+    chrome.tabs.onUpdated.addListener(thisListener);
+    chrome.tabs.onRemoved.addListener(thisListener);
 }
 
 const tabTitleCounter = {
