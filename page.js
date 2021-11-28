@@ -64,8 +64,8 @@ var priorTabId = undefined;
 function openTabWhenPriorIsLoaded(index) {
     if (index >= urlList.length) { // Stop once urlList is fully iterated.
         console.log("All urls have been opened");
-        // return;
-        window.close(); // Brute force stop, because return isn't working.
+        return;
+        // window.close(); // Brute force stop, because return isn't working.
     }
 
     const thisListener = (tabId, info) => {
