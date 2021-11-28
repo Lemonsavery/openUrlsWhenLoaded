@@ -94,7 +94,13 @@ function openTabWhenPriorIsLoaded(index) {
                     +"\n\nThis openUrlsWhenLoaded page should be reloaded before being used again.");
                 }
             });
-            createTab();
+
+            if (pauseState.isPaused) {
+                // If paused, continue once unpaused.
+                pauseButton.addEventListener("unpause", function() { createTab(); }, {once: true});
+            } else {
+                createTab();
+            }
         }
     });
 }
@@ -115,4 +121,46 @@ openButton.onclick = () => {
     setTimeout(() => { // Prevent accidental multi-clicking of button.
         openButton.disabled = false;
     }, 1000);
+};
+
+const pauseButton = document.getElementById("thePauseButton");
+const pauseState = {
+    UNPAUSED: 0,
+    PAUSED: 1,
+    state: undefined,
+    UNPAUSE_EVENT: new Event("unpause"),
+    toggle: function() {
+        if (this.state === this.UNPAUSED) {
+            this.state = this.PAUSED;
+            this.isPaused = true;
+        } else if (this.state === this.PAUSED) {
+            this.state = this.UNPAUSED;
+            this.isPaused = false;
+            pauseButton.dispatchEvent(this.UNPAUSE_EVENT);
+        } else { // Default, runs on startup.
+            this.state = this.UNPAUSED;
+            this.isPaused = false;
+        }
+
+        let label = this.label[this.state];
+        pauseButton.innerText = label.text;
+        if (label.style) {
+            Object.entries(label.style).forEach(([prop, val]) => {
+                pauseButton.style[prop] = val;
+            });
+        }
+    },
+    isPaused: undefined,
+};
+pauseState.label = {
+    [pauseState.UNPAUSED]: {text: "Pause",
+        style: {backgroundColor: ""}
+    },
+    [pauseState.PAUSED]: {text: "Paused",
+        style: {backgroundColor: "#ff000040"}
+    },
+};
+pauseState.toggle();
+pauseButton.onclick = () => {
+    pauseState.toggle();
 };
