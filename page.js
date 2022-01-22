@@ -42,9 +42,9 @@ async function main() {
     var useIncognito = incognitoCheckbox.checked;
     chrome.extension.isAllowedIncognitoAccess((allowed) => {
         if (!allowed && useIncognito) { // Stop execution in this case.
-            alert("openUrlsWhenLoaded does not currently have permission to open tabs in incognito mode."
+            alert("Sequential Mass URL Opener does not currently have permission to open tabs in incognito mode."
             +"\n\nTo give it permission, go to your Chrome Menu > More Tools > Extensions, find the "
-            +"openUrlsWhenLoaded extension > Details > Allow In Incognito, and enable it.");
+            +"Sequential Mass URL Opener extension > Details > Allow In Incognito, and enable it.");
             return;
         }
         chrome.windows.create({
@@ -94,7 +94,7 @@ function openTabWhenPriorIsLoaded(index) {
                     chrome.tabs.onRemoved.removeListener(thisListener);
                     document.title = "*** ERROR ***";
                     alert(`ERROR\n\nOnly urls through ${urlList[index-1]} have been opened.`
-                    +"\n\nThis openUrlsWhenLoaded page should be reloaded before being used again.");
+                    +"\n\nThis Sequential Mass URL Opener page should be reloaded before being used again.");
                 }
             });
 
