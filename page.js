@@ -2,6 +2,8 @@ const exampleUrls = `
 https://www.google.com
 https://www.google.com/search?q=hat
 https://www.google.com/search?q=shoe
+https://www.google.com/search?q=shirt
+https://www.google.com/search?q=pants
 `;
 
 
