@@ -100,6 +100,8 @@ function openTabWhenPriorIsLoaded(index) {
             if (pauseState.isPaused) {
                 // If paused, continue once unpaused.
                 pauseButton.addEventListener("unpause", function() { createTab(); }, {once: true});
+                chrome.tabs.onUpdated.removeListener(thisListener);
+                chrome.tabs.onRemoved.removeListener(thisListener);
             } else {
                 createTab();
             }
