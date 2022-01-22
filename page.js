@@ -36,6 +36,7 @@ const incognitoCheckbox = document.getElementById("incognitoCheckbox");
 async function main() {
     urlList = getUrls();
     urlList = urlList.length > 0 ? urlList : getUrls(exampleUrls); // Use the example urls if text is empty.
+    tabTitleCounter.reset();
     tabTitleCounter.total = urlList.length;
 
     var useIncognito = incognitoCheckbox.checked;
@@ -112,6 +113,7 @@ function openTabWhenPriorIsLoaded(index) {
 const tabTitleCounter = {
     loaded: 0,
     total: 0,
+    reset: function() { this.loaded = 0, this.total = 0, document.title = "Open URLs When Loaded"; },
     iterate: function() {
         this.loaded++;
         document.title = `(${this.loaded}/${this.total}) Open URLs When Loaded`;
