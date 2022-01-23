@@ -67,6 +67,7 @@ var priorTabId = undefined;
 function openTabWhenPriorIsLoaded(index) {
     if (index >= urlList.length) { // Stop once urlList is fully iterated.
         console.log("All urls have been opened");
+        openButton.enable();
         return;
         // window.close(); // Brute force stop, because return isn't working.
     }
@@ -125,12 +126,18 @@ const tabTitleCounter = {
 };
 
 const openButton = document.getElementById("theOpenButton");
-openButton.onclick = () => {
+openButton.enable = () => {
+    openButton.disabled = false;
+    openButton.innerText = "Open All";
+};
+openButton.disable = () => {
     openButton.disabled = true;
+    openButton.innerText = "Opening";
+};
+openButton.enable();
+openButton.onclick = () => {
+    openButton.disable();
     main();
-    setTimeout(() => { // Prevent accidental multi-clicking of button.
-        openButton.disabled = false;
-    }, 1000);
 };
 
 const pauseButton = document.getElementById("thePauseButton");
