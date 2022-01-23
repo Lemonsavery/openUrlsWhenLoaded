@@ -35,7 +35,7 @@ function getUrls(testingText) {
 
 var urlList = undefined;
 const incognitoCheckbox = document.getElementById("incognitoCheckbox");
-async function main() {
+async function openUrls() {
     urlList = getUrls();
     urlList = urlList.length > 0 ? urlList : getUrls(exampleUrls); // Use the example urls if text is empty.
     tabTitleCounter.reset();
@@ -137,7 +137,7 @@ openButton.disable = () => {
 openButton.enable();
 openButton.onclick = () => {
     openButton.disable();
-    main();
+    openUrls();
 };
 
 const pauseButton = document.getElementById("thePauseButton");
