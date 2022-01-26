@@ -5,7 +5,7 @@
 const theTextArea = document.getElementById("theTextArea");
 const theSettingsButton = document.getElementById("theSettingsButton");
 const theSettingsDropdown = document.getElementById("Settings");
-var storedData = {
+var StoredData = {
     closeOnComplete: { /* SETTING: Does the tool close when all urls have been opened? */
         value: (localStorage.getItem("closeOnComplete") ?? "false") === "true",
         set: function(newVal) { this.value = newVal, localStorage.setItem("closeOnComplete", newVal); },
@@ -51,8 +51,8 @@ var storedData = {
             field.checked = this.value; // Set the default
             field.addEventListener('change', () => {
                 this.set(field.checked);
-                if (this.value) { storedData.storedUrlList.set(theTextArea.value); }
-                else if (!this.value) { storedData.storedUrlList.delete(); }
+                if (this.value) { StoredData.storedUrlList.set(theTextArea.value); }
+                else if (!this.value) { StoredData.storedUrlList.delete(); }
             });
         },
     },
@@ -78,9 +78,9 @@ var storedData = {
         value: localStorage.getItem("storedUrlList") ?? "",
         set: function(newVal) { this.value = newVal, localStorage.setItem("storedUrlList", newVal); },
         onStartup: function() {
-            if (storedData.saveUrlList.value) { theTextArea.value = this.value; }
+            if (StoredData.saveUrlList.value) { theTextArea.value = this.value; }
             theTextArea.addEventListener('change', () => {
-                if (storedData.saveUrlList.value) { this.set(theTextArea.value); };
+                if (StoredData.saveUrlList.value) { this.set(theTextArea.value); };
             });
         },
         delete: function() { localStorage.removeItem("storedUrlList"); },
@@ -132,8 +132,8 @@ var storedData = {
     ],
 };
 
-for (key of storedData._startupOrder) {
-    storedData[key].onStartup();
+for (key of StoredData._startupOrder) {
+    StoredData[key].onStartup();
 } // Run the startup functions
 
 
