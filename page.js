@@ -273,16 +273,26 @@ async function openUrls() {
             +"Sequential Mass URL Opener extension > Details > Allow In Incognito, and enable it.");
             return;
         }
-        chrome.windows.create({
-            "incognito": useIncognito,
-            "state": "minimized"
-        })
-        .then((result) => {
-            // Begin opening urls in tabs.
-            priorTabId = result.tabs[0].id;
-            windowId = result.id;
-            openTabWhenPriorIsLoaded(0);
-        });
+
+        if (!StoredData.openTabsSameWindow.value) { // Open tabs into a new window.
+            chrome.windows.create({
+                "incognito": useIncognito,
+                "state": "minimized"
+            })
+            .then((result) => {
+                // Begin opening urls in tabs.
+                priorTabId = result.tabs[0].id;
+                windowId = result.id;
+                openTabWhenPriorIsLoaded(0);
+            });
+        } else { // Open tabs into current window. Incognito is not an option here.
+            chrome.tabs.create({"active": false})
+            .then((result) => {
+                // Begin opening urls in tabs.
+                priorTabId = result.id;
+                openTabWhenPriorIsLoaded(0);
+            });
+        }
     });
 }
 
