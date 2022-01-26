@@ -9,9 +9,8 @@
 <body>
     <div class="container" style="text-align: center; max-width: 769px; margin: auto;">
         <div><p>
-            This tool will open a list of urls into a separate minimized window. 
-            Each tab will be opened once the prior tab has been loaded fully. Once 
-            all tabs have been opened, this tool's tab will close. As opposed to other 
+            This tool will open a list of urls into this window. Each tab will be 
+            opened once the prior tab has been loaded fully. As opposed to other 
             mass-opening tools, this tool may be useful for: reducing the spike in 
             bandwidth usage, avoiding 503 errors from making too many requests to the 
             same website too quickly, etc. Click 'Open All' without any urls to see an 
@@ -29,7 +28,7 @@
         <div>
             <div style="display: inline-block;"></div>
             <button id="theOpenButton">Open All</button>
-            <button id="thePauseButton">pause toggle hasn't run yet</button>
+            <button id="thePauseButton">Pause</button>
             <input id="incognitoCheckbox" type="checkbox" style="vertical-align: bottom;" checked>open in incognito</input>
         </div>
 
@@ -40,7 +39,7 @@
                 <p style="display: flex;"><input type="checkbox" id="saveUrlList">Save url list in this tool.</p>
                 <p style="display: flex;"><input type="checkbox" id="showPauseButton">Show pause button.</p>
             </div>
-        <div>
+            <div>
                 <p style="display: flex;"><input type="checkbox" id="openToolNewWindow">Open tool in new window.</p>
                 <p style="display: flex;"><input type="checkbox" id="openTabsSameWindow">Open tabs in same window as tool.</p>
                 <p style="display: flex;"><input type="checkbox" id="openTabsInIncognito">Open tabs in incognito.</p>
