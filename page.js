@@ -1,13 +1,79 @@
-const exampleUrls = `
-https://www.google.com
-https://www.google.com/search?q=hat
-https://www.google.com/search?q=shoe
-https://www.google.com/search?q=shirt
-https://www.google.com/search?q=pants
-`;
+/*
 
+*/
 
 const theTextArea = document.getElementById("theTextArea");
+
+
+const tabTitleCounter = {
+    loaded: 0,
+    total: 0,
+    reset: function() { this.loaded = 0, this.total = 0, document.title = "Open URLs When Loaded"; },
+    iterate: function() {
+        this.loaded++;
+        document.title = `(${this.loaded}/${this.total}) Open URLs When Loaded`;
+    }
+};
+
+const openButton = document.getElementById("theOpenButton");
+openButton.enable = () => {
+    openButton.disabled = false;
+    openButton.innerText = "Open All";
+};
+openButton.disable = () => {
+    openButton.disabled = true;
+    openButton.innerText = "Opening";
+};
+openButton.enable();
+openButton.onclick = () => {
+    openButton.disable();
+    openUrls();
+};
+
+const pauseButton = document.getElementById("thePauseButton");
+const pauseState = {
+    UNPAUSED: 0,
+    PAUSED: 1,
+    state: undefined,
+    UNPAUSE_EVENT: new Event("unpause"),
+    toggle: function() {
+        if (this.state === this.UNPAUSED) {
+            this.state = this.PAUSED;
+            this.isPaused = true;
+        } else if (this.state === this.PAUSED) {
+            this.state = this.UNPAUSED;
+            this.isPaused = false;
+            pauseButton.dispatchEvent(this.UNPAUSE_EVENT);
+        } else { // Default, runs on startup.
+            this.state = this.UNPAUSED;
+            this.isPaused = false;
+        }
+
+        let label = this.label[this.state];
+        pauseButton.innerText = label.text;
+        if (label.style) {
+            Object.entries(label.style).forEach(([prop, val]) => {
+                pauseButton.style[prop] = val;
+            });
+        }
+    },
+    isPaused: undefined,
+};
+pauseState.label = {
+    [pauseState.UNPAUSED]: {text: "Pause",
+        style: {backgroundColor: ""}
+    },
+    [pauseState.PAUSED]: {text: "Paused",
+        style: {backgroundColor: "#ff000040"}
+    },
+};
+pauseState.toggle();
+pauseButton.onclick = () => {
+    pauseState.toggle();
+};
+
+
+
 function getUrls(testingText) {
     if (testingText !== undefined) { // Allow for use of hardcoded test input.
         theTextArea.value = testingText;
@@ -33,6 +99,13 @@ function getUrls(testingText) {
     )
 }
 
+const exampleUrls = `
+https://www.google.com
+https://www.google.com/search?q=hat
+https://www.google.com/search?q=shoe
+https://www.google.com/search?q=shirt
+https://www.google.com/search?q=pants
+`.trim();
 var urlList = undefined;
 const incognitoCheckbox = document.getElementById("incognitoCheckbox");
 async function openUrls() {
@@ -114,70 +187,3 @@ function openTabWhenPriorIsLoaded(index) {
     chrome.tabs.onUpdated.addListener(thisListener);
     chrome.tabs.onRemoved.addListener(thisListener);
 }
-
-const tabTitleCounter = {
-    loaded: 0,
-    total: 0,
-    reset: function() { this.loaded = 0, this.total = 0, document.title = "Open URLs When Loaded"; },
-    iterate: function() {
-        this.loaded++;
-        document.title = `(${this.loaded}/${this.total}) Open URLs When Loaded`;
-    }
-};
-
-const openButton = document.getElementById("theOpenButton");
-openButton.enable = () => {
-    openButton.disabled = false;
-    openButton.innerText = "Open All";
-};
-openButton.disable = () => {
-    openButton.disabled = true;
-    openButton.innerText = "Opening";
-};
-openButton.enable();
-openButton.onclick = () => {
-    openButton.disable();
-    openUrls();
-};
-
-const pauseButton = document.getElementById("thePauseButton");
-const pauseState = {
-    UNPAUSED: 0,
-    PAUSED: 1,
-    state: undefined,
-    UNPAUSE_EVENT: new Event("unpause"),
-    toggle: function() {
-        if (this.state === this.UNPAUSED) {
-            this.state = this.PAUSED;
-            this.isPaused = true;
-        } else if (this.state === this.PAUSED) {
-            this.state = this.UNPAUSED;
-            this.isPaused = false;
-            pauseButton.dispatchEvent(this.UNPAUSE_EVENT);
-        } else { // Default, runs on startup.
-            this.state = this.UNPAUSED;
-            this.isPaused = false;
-        }
-
-        let label = this.label[this.state];
-        pauseButton.innerText = label.text;
-        if (label.style) {
-            Object.entries(label.style).forEach(([prop, val]) => {
-                pauseButton.style[prop] = val;
-            });
-        }
-    },
-    isPaused: undefined,
-};
-pauseState.label = {
-    [pauseState.UNPAUSED]: {text: "Pause",
-        style: {backgroundColor: ""}
-    },
-    [pauseState.PAUSED]: {text: "Paused",
-        style: {backgroundColor: "#ff000040"}
-    },
-};
-pauseState.toggle();
-pauseButton.onclick = () => {
-    pauseState.toggle();
-};
