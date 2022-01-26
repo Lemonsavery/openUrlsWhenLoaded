@@ -275,22 +275,28 @@ async function openUrls() {
         }
 
         if (!StoredData.openTabsSameWindow.value) { // Open tabs into a new window.
-            chrome.windows.create({
+            chrome.windows.create({ // Only the first url is opened this here.
+                "url": urlList[0], 
                 "incognito": useIncognito,
                 "state": "minimized"
             })
             .then((result) => {
-                // Begin opening urls in tabs.
+                // Begin opening rest of urls.
                 priorTabId = result.tabs[0].id;
                 windowId = result.id;
-                openTabWhenPriorIsLoaded(0);
+                tabTitleCounter.iterate();
+                openTabWhenPriorIsLoaded(1);
             });
         } else { // Open tabs into current window. Incognito is not an option here.
-            chrome.tabs.create({"active": false})
+            chrome.tabs.create({ // Only the first url is opened this here.
+                "url": urlList[0], 
+                "active": false
+            })
             .then((result) => {
-                // Begin opening urls in tabs.
+                // Begin opening rest of urls.
                 priorTabId = result.id;
-                openTabWhenPriorIsLoaded(0);
+                tabTitleCounter.iterate();
+                openTabWhenPriorIsLoaded(1);
             });
         }
     });
