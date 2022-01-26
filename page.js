@@ -1,13 +1,212 @@
-const exampleUrls = `
-https://www.google.com
-https://www.google.com/search?q=hat
-https://www.google.com/search?q=shoe
-https://www.google.com/search?q=shirt
-https://www.google.com/search?q=pants
-`;
+/*
 
+*/
 
 const theTextArea = document.getElementById("theTextArea");
+const theSettingsButton = document.getElementById("theSettingsButton");
+const theSettingsDropdown = document.getElementById("Settings");
+var storedData = {
+    closeOnComplete: { /* SETTING: Does the tool close when all urls have been opened? */
+        value: (localStorage.getItem("closeOnComplete") ?? "false") === "true",
+        set: function(newVal) { this.value = newVal, localStorage.setItem("closeOnComplete", newVal); },
+        onStartup: function() {
+            var field = document.getElementById("closeOnComplete");
+            field.checked = this.value; // Set the default
+            field.addEventListener('change', () => { this.set(field.checked); });
+        },
+    },
+    openToolNewWindow: { /* SETTING: Upon starting this extension, does the tool page open in a new window? 
+        If not, it opens in the current window. */
+        value: (localStorage.getItem("openToolNewWindow") ?? "false") === "true",
+        set: function(newVal) { this.value = newVal, localStorage.setItem("openToolNewWindow", newVal); },
+        onStartup: function() {
+            var field = document.getElementById("openToolNewWindow");
+            field.checked = this.value; // Set the default
+            field.addEventListener('change', () => { this.set(field.checked); });
+        },
+    },
+    openTabsSameWindow: { /* SETTING: Should the tabs opened by this tool be in the same window as this 
+        tool, or a new window? */
+        value: (localStorage.getItem("openTabsSameWindow") ?? "true") === "true",
+        set: function(newVal) { this.value = newVal, localStorage.setItem("openTabsSameWindow", newVal); },
+        onStartup: function() {
+            var field = document.getElementById("openTabsSameWindow");
+            field.checked = this.value; // Set the default
+
+            var dependentField = document.getElementById("openTabsInIncognito");
+            dependentField.disabled = field.checked;
+
+            field.addEventListener('change', () => {
+                this.set(field.checked);
+                dependentField.disabled = field.checked;
+            });
+        },
+    },
+    saveUrlList: { /* SETTING: Should the textbox text be saved for future openings of this extension, 
+        or not? */
+        value: (localStorage.getItem("saveUrlList") ?? "true") === "true",
+        set: function(newVal) { this.value = newVal, localStorage.setItem("saveUrlList", newVal); },
+        onStartup: function() {
+            var field = document.getElementById("saveUrlList");
+            field.checked = this.value; // Set the default
+            field.addEventListener('change', () => {
+                this.set(field.checked);
+                if (this.value) { storedData.storedUrlList.set(theTextArea.value); }
+                else if (!this.value) { storedData.storedUrlList.delete(); }
+            });
+        },
+    },
+    openTabsInIncognito: { /* SETTING: Should urls be opened into incognito tabs, or normal ones? */
+        value: (localStorage.getItem("openTabsInIncognito") ?? "false") === "true",
+        set: function(newVal) { this.value = newVal, localStorage.setItem("openTabsInIncognito", newVal); },
+        onStartup: function() {
+            var field = document.getElementById("openTabsInIncognito");
+            field.checked = this.value; // Set the default
+            field.addEventListener('change', () => { this.set(field.checked); });
+        },
+    },
+    showPauseButton: { /* SETTING: Should the pause button be shown, or hidden? */
+        value: (localStorage.getItem("showPauseButton") ?? "false") === "true",
+        set: function(newVal) { this.value = newVal, localStorage.setItem("showPauseButton", newVal); },
+        onStartup: function() {
+            var field = document.getElementById("showPauseButton");
+            field.checked = this.value; // Set the default
+            field.addEventListener('change', () => { this.set(field.checked); });
+        },
+    },
+    storedUrlList: {
+        value: localStorage.getItem("storedUrlList") ?? "",
+        set: function(newVal) { this.value = newVal, localStorage.setItem("storedUrlList", newVal); },
+        onStartup: function() {
+            if (storedData.saveUrlList.value) { theTextArea.value = this.value; }
+            theTextArea.addEventListener('change', () => {
+                if (storedData.saveUrlList.value) { this.set(theTextArea.value); };
+            });
+        },
+        delete: function() { localStorage.removeItem("storedUrlList"); },
+    },
+    showSettings: {
+        value: (localStorage.getItem("showSettings") ?? "false") === "true",
+        set: function(newVal) { this.value = newVal, localStorage.setItem("showSettings", newVal); },
+        onStartup: function() {
+            this.showOrHideSettingsDropdown(); // Set the default
+            theSettingsButton.onclick = () => {
+                this.set(!this.value); // Toggle on click
+                this.showOrHideSettingsDropdown();
+            };
+        },
+        showOrHideSettingsDropdown: function() {
+            const button = theSettingsButton.style;
+            const dropdown = theSettingsDropdown.style;
+            if (this.value) {
+                button["background-color"] = "lightgray";
+                dropdown["border-style"] = "groove";
+                dropdown.display = "inline-flex";
+            } else {
+                button["background-color"] = "revert";
+                dropdown["border-style"] = "revert";
+                dropdown.display = "none";
+            }
+        },
+    },
+    // urlList4Reload: { // set on refresh
+    //     value: (() => { // Delete this data from localStorage immediately after getting it on startup.
+    //         let list = localStorage.getItem("urlList4Reload");
+    //         localStorage.removeItem("urlList4Reload");
+    //         return list;
+    //     })(),
+    //     set: function(newVal) { this.value = newVal, localStorage.setItem("urlList4Reload", newVal); },
+    //     onStartup: function() {
+    //         theTextArea.value = this.value ?? theTextArea.value;
+    //     },
+    // },
+    _startupOrder: [
+        "closeOnComplete",
+        "openToolNewWindow",
+        "openTabsSameWindow",
+        "saveUrlList",
+        "openTabsInIncognito",
+        "showPauseButton",
+        "storedUrlList",
+        "showSettings",
+    ],
+};
+
+for (key of storedData._startupOrder) {
+    storedData[key].onStartup();
+} // Run the startup functions
+
+
+
+const tabTitleCounter = {
+    loaded: 0,
+    total: 0,
+    reset: function() { this.loaded = 0, this.total = 0, document.title = "Open URLs When Loaded"; },
+    iterate: function() {
+        this.loaded++;
+        document.title = `(${this.loaded}/${this.total}) Open URLs When Loaded`;
+    }
+};
+
+const openButton = document.getElementById("theOpenButton");
+openButton.enable = () => {
+    openButton.disabled = false;
+    openButton.innerText = "Open All";
+};
+openButton.disable = () => {
+    openButton.disabled = true;
+    openButton.innerText = "Opening";
+};
+openButton.enable();
+openButton.onclick = () => {
+    openButton.disable();
+    openUrls();
+};
+
+const pauseButton = document.getElementById("thePauseButton");
+const pauseState = {
+    UNPAUSED: 0,
+    PAUSED: 1,
+    state: undefined,
+    UNPAUSE_EVENT: new Event("unpause"),
+    toggle: function() {
+        if (this.state === this.UNPAUSED) {
+            this.state = this.PAUSED;
+            this.isPaused = true;
+        } else if (this.state === this.PAUSED) {
+            this.state = this.UNPAUSED;
+            this.isPaused = false;
+            pauseButton.dispatchEvent(this.UNPAUSE_EVENT);
+        } else { // Default, runs on startup.
+            this.state = this.UNPAUSED;
+            this.isPaused = false;
+        }
+
+        let label = this.label[this.state];
+        pauseButton.innerText = label.text;
+        if (label.style) {
+            Object.entries(label.style).forEach(([prop, val]) => {
+                pauseButton.style[prop] = val;
+            });
+        }
+    },
+    isPaused: undefined,
+};
+pauseState.label = {
+    [pauseState.UNPAUSED]: {text: "Pause",
+        style: {backgroundColor: ""}
+    },
+    [pauseState.PAUSED]: {text: "Paused",
+        style: {backgroundColor: "#ff000040"}
+    },
+};
+pauseState.toggle();
+pauseButton.onclick = () => {
+    pauseState.toggle();
+};
+
+
+
 function getUrls(testingText) {
     if (testingText !== undefined) { // Allow for use of hardcoded test input.
         theTextArea.value = testingText;
@@ -33,6 +232,13 @@ function getUrls(testingText) {
     )
 }
 
+const exampleUrls = `
+https://www.google.com
+https://www.google.com/search?q=hat
+https://www.google.com/search?q=shoe
+https://www.google.com/search?q=shirt
+https://www.google.com/search?q=pants
+`.trim();
 var urlList = undefined;
 const incognitoCheckbox = document.getElementById("incognitoCheckbox");
 async function openUrls() {
@@ -114,70 +320,3 @@ function openTabWhenPriorIsLoaded(index) {
     chrome.tabs.onUpdated.addListener(thisListener);
     chrome.tabs.onRemoved.addListener(thisListener);
 }
-
-const tabTitleCounter = {
-    loaded: 0,
-    total: 0,
-    reset: function() { this.loaded = 0, this.total = 0, document.title = "Open URLs When Loaded"; },
-    iterate: function() {
-        this.loaded++;
-        document.title = `(${this.loaded}/${this.total}) Open URLs When Loaded`;
-    }
-};
-
-const openButton = document.getElementById("theOpenButton");
-openButton.enable = () => {
-    openButton.disabled = false;
-    openButton.innerText = "Open All";
-};
-openButton.disable = () => {
-    openButton.disabled = true;
-    openButton.innerText = "Opening";
-};
-openButton.enable();
-openButton.onclick = () => {
-    openButton.disable();
-    openUrls();
-};
-
-const pauseButton = document.getElementById("thePauseButton");
-const pauseState = {
-    UNPAUSED: 0,
-    PAUSED: 1,
-    state: undefined,
-    UNPAUSE_EVENT: new Event("unpause"),
-    toggle: function() {
-        if (this.state === this.UNPAUSED) {
-            this.state = this.PAUSED;
-            this.isPaused = true;
-        } else if (this.state === this.PAUSED) {
-            this.state = this.UNPAUSED;
-            this.isPaused = false;
-            pauseButton.dispatchEvent(this.UNPAUSE_EVENT);
-        } else { // Default, runs on startup.
-            this.state = this.UNPAUSED;
-            this.isPaused = false;
-        }
-
-        let label = this.label[this.state];
-        pauseButton.innerText = label.text;
-        if (label.style) {
-            Object.entries(label.style).forEach(([prop, val]) => {
-                pauseButton.style[prop] = val;
-            });
-        }
-    },
-    isPaused: undefined,
-};
-pauseState.label = {
-    [pauseState.UNPAUSED]: {text: "Pause",
-        style: {backgroundColor: ""}
-    },
-    [pauseState.PAUSED]: {text: "Paused",
-        style: {backgroundColor: "#ff000040"}
-    },
-};
-pauseState.toggle();
-pauseButton.onclick = () => {
-    pauseState.toggle();
-};
