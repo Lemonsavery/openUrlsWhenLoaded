@@ -3,6 +3,42 @@
 */
 
 const theTextArea = document.getElementById("theTextArea");
+const theSettingsButton = document.getElementById("theSettingsButton");
+const theSettingsDropdown = document.getElementById("Settings");
+var storedData = {
+    showSettings: {
+        value: (localStorage.getItem("showSettings") ?? "false") === "true",
+        set: function(newVal) { this.value = newVal, localStorage.setItem("showSettings", newVal); },
+        onStartup: function() {
+            this.showOrHideSettingsDropdown(); // Set the default
+            theSettingsButton.onclick = () => {
+                this.set(!this.value); // Toggle on click
+                this.showOrHideSettingsDropdown();
+            };
+        },
+        showOrHideSettingsDropdown: function() {
+            const button = theSettingsButton.style;
+            const dropdown = theSettingsDropdown.style;
+            if (this.value) {
+                button["background-color"] = "lightgray";
+                dropdown["border-style"] = "groove";
+                dropdown.display = "inline-flex";
+            } else {
+                button["background-color"] = "revert";
+                dropdown["border-style"] = "revert";
+                dropdown.display = "none";
+            }
+        },
+    },
+    _startupOrder: [
+        "showSettings",
+    ],
+};
+
+for (key of storedData._startupOrder) {
+    storedData[key].onStartup();
+} // Run the startup functions
+
 
 
 const tabTitleCounter = {
