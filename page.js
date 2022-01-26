@@ -6,6 +6,85 @@ const theTextArea = document.getElementById("theTextArea");
 const theSettingsButton = document.getElementById("theSettingsButton");
 const theSettingsDropdown = document.getElementById("Settings");
 var storedData = {
+    closeOnComplete: { /* SETTING: Does the tool close when all urls have been opened? */
+        value: (localStorage.getItem("closeOnComplete") ?? "false") === "true",
+        set: function(newVal) { this.value = newVal, localStorage.setItem("closeOnComplete", newVal); },
+        onStartup: function() {
+            var field = document.getElementById("closeOnComplete");
+            field.checked = this.value; // Set the default
+            field.addEventListener('change', () => { this.set(field.checked); });
+        },
+    },
+    openToolNewWindow: { /* SETTING: Upon starting this extension, does the tool page open in a new window? 
+        If not, it opens in the current window. */
+        value: (localStorage.getItem("openToolNewWindow") ?? "false") === "true",
+        set: function(newVal) { this.value = newVal, localStorage.setItem("openToolNewWindow", newVal); },
+        onStartup: function() {
+            var field = document.getElementById("openToolNewWindow");
+            field.checked = this.value; // Set the default
+            field.addEventListener('change', () => { this.set(field.checked); });
+        },
+    },
+    openTabsSameWindow: { /* SETTING: Should the tabs opened by this tool be in the same window as this 
+        tool, or a new window? */
+        value: (localStorage.getItem("openTabsSameWindow") ?? "true") === "true",
+        set: function(newVal) { this.value = newVal, localStorage.setItem("openTabsSameWindow", newVal); },
+        onStartup: function() {
+            var field = document.getElementById("openTabsSameWindow");
+            field.checked = this.value; // Set the default
+
+            var dependentField = document.getElementById("openTabsInIncognito");
+            dependentField.disabled = field.checked;
+
+            field.addEventListener('change', () => {
+                this.set(field.checked);
+                dependentField.disabled = field.checked;
+            });
+        },
+    },
+    saveUrlList: { /* SETTING: Should the textbox text be saved for future openings of this extension, 
+        or not? */
+        value: (localStorage.getItem("saveUrlList") ?? "true") === "true",
+        set: function(newVal) { this.value = newVal, localStorage.setItem("saveUrlList", newVal); },
+        onStartup: function() {
+            var field = document.getElementById("saveUrlList");
+            field.checked = this.value; // Set the default
+            field.addEventListener('change', () => {
+                this.set(field.checked);
+                if (this.value) { storedData.storedUrlList.set(theTextArea.value); }
+                else if (!this.value) { storedData.storedUrlList.delete(); }
+            });
+        },
+    },
+    openTabsInIncognito: { /* SETTING: Should urls be opened into incognito tabs, or normal ones? */
+        value: (localStorage.getItem("openTabsInIncognito") ?? "false") === "true",
+        set: function(newVal) { this.value = newVal, localStorage.setItem("openTabsInIncognito", newVal); },
+        onStartup: function() {
+            var field = document.getElementById("openTabsInIncognito");
+            field.checked = this.value; // Set the default
+            field.addEventListener('change', () => { this.set(field.checked); });
+        },
+    },
+    showPauseButton: { /* SETTING: Should the pause button be shown, or hidden? */
+        value: (localStorage.getItem("showPauseButton") ?? "false") === "true",
+        set: function(newVal) { this.value = newVal, localStorage.setItem("showPauseButton", newVal); },
+        onStartup: function() {
+            var field = document.getElementById("showPauseButton");
+            field.checked = this.value; // Set the default
+            field.addEventListener('change', () => { this.set(field.checked); });
+        },
+    },
+    storedUrlList: {
+        value: localStorage.getItem("storedUrlList") ?? "",
+        set: function(newVal) { this.value = newVal, localStorage.setItem("storedUrlList", newVal); },
+        onStartup: function() {
+            if (storedData.saveUrlList.value) { theTextArea.value = this.value; }
+            theTextArea.addEventListener('change', () => {
+                if (storedData.saveUrlList.value) { this.set(theTextArea.value); };
+            });
+        },
+        delete: function() { localStorage.removeItem("storedUrlList"); },
+    },
     showSettings: {
         value: (localStorage.getItem("showSettings") ?? "false") === "true",
         set: function(newVal) { this.value = newVal, localStorage.setItem("showSettings", newVal); },
@@ -30,7 +109,25 @@ var storedData = {
             }
         },
     },
+    // urlList4Reload: { // set on refresh
+    //     value: (() => { // Delete this data from localStorage immediately after getting it on startup.
+    //         let list = localStorage.getItem("urlList4Reload");
+    //         localStorage.removeItem("urlList4Reload");
+    //         return list;
+    //     })(),
+    //     set: function(newVal) { this.value = newVal, localStorage.setItem("urlList4Reload", newVal); },
+    //     onStartup: function() {
+    //         theTextArea.value = this.value ?? theTextArea.value;
+    //     },
+    // },
     _startupOrder: [
+        "closeOnComplete",
+        "openToolNewWindow",
+        "openTabsSameWindow",
+        "saveUrlList",
+        "openTabsInIncognito",
+        "showPauseButton",
+        "storedUrlList",
         "showSettings",
     ],
 };
