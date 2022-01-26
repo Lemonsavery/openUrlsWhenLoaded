@@ -10,8 +10,9 @@ var StoredData = {
     closeOnComplete: { /* SETTING: Does the tool close when all urls have been opened? */
         value: (localStorage.getItem("closeOnComplete") ?? "false") === "true",
         set: function(newVal) { this.value = newVal, localStorage.setItem("closeOnComplete", newVal); },
+        settingId: "closeOnComplete",
         onStartup: function() {
-            var field = document.getElementById("closeOnComplete");
+            var field = document.getElementById(this.settingId);
             field.checked = this.value; // Set the default
             field.addEventListener('change', () => { this.set(field.checked); });
         },
@@ -20,8 +21,9 @@ var StoredData = {
         If not, it opens in the current window. */
         value: (localStorage.getItem("openToolNewWindow") ?? "false") === "true",
         set: function(newVal) { this.value = newVal, localStorage.setItem("openToolNewWindow", newVal); },
+        settingId: "openToolNewWindow",
         onStartup: function() {
-            var field = document.getElementById("openToolNewWindow");
+            var field = document.getElementById(this.settingId);
             field.checked = this.value; // Set the default
             field.addEventListener('change', () => { this.set(field.checked); });
         },
@@ -30,8 +32,9 @@ var StoredData = {
         tool, or a new window? */
         value: (localStorage.getItem("openTabsSameWindow") ?? "true") === "true",
         set: function(newVal) { this.value = newVal, localStorage.setItem("openTabsSameWindow", newVal); },
+        settingId: "openTabsSameWindow",
         onStartup: function() {
-            var field = document.getElementById("openTabsSameWindow");
+            var field = document.getElementById(this.settingId);
             field.checked = this.value; // Set the default
 
             var dependentField = document.getElementById("openTabsInIncognito");
@@ -47,8 +50,9 @@ var StoredData = {
         or not? */
         value: (localStorage.getItem("saveUrlList") ?? "true") === "true",
         set: function(newVal) { this.value = newVal, localStorage.setItem("saveUrlList", newVal); },
+        settingId: "saveUrlList",
         onStartup: function() {
-            var field = document.getElementById("saveUrlList");
+            var field = document.getElementById(this.settingId);
             field.checked = this.value; // Set the default
             field.addEventListener('change', () => {
                 this.set(field.checked);
@@ -60,8 +64,9 @@ var StoredData = {
     openTabsInIncognito: { /* SETTING: Should urls be opened into incognito tabs, or normal ones? */
         value: (localStorage.getItem("openTabsInIncognito") ?? "false") === "true",
         set: function(newVal) { this.value = newVal, localStorage.setItem("openTabsInIncognito", newVal); },
+        settingId: "openTabsInIncognito",
         onStartup: function() {
-            var field = document.getElementById("openTabsInIncognito");
+            var field = document.getElementById(this.settingId);
             field.checked = this.value; // Set the default
             field.addEventListener('change', () => { this.set(field.checked); });
         },
@@ -69,8 +74,9 @@ var StoredData = {
     showPauseButton: { /* SETTING: Should the pause button be shown, or hidden? */
         value: (localStorage.getItem("showPauseButton") ?? "false") === "true",
         set: function(newVal) { this.value = newVal, localStorage.setItem("showPauseButton", newVal); },
+        settingId: "showPauseButton",
         onStartup: function() {
-            var field = document.getElementById("showPauseButton");
+            var field = document.getElementById(this.settingId);
             field.checked = this.value; // Set the default
             this.showOrHidePauseButton();
             field.addEventListener('change', () => {
