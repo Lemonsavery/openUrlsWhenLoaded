@@ -3,6 +3,7 @@
 */
 
 const theTextArea = document.getElementById("theTextArea");
+const pauseButton = document.getElementById("thePauseButton");
 const theSettingsButton = document.getElementById("theSettingsButton");
 const theSettingsDropdown = document.getElementById("Settings");
 var StoredData = {
@@ -71,7 +72,19 @@ var StoredData = {
         onStartup: function() {
             var field = document.getElementById("showPauseButton");
             field.checked = this.value; // Set the default
-            field.addEventListener('change', () => { this.set(field.checked); });
+            this.showOrHidePauseButton();
+            field.addEventListener('change', () => {
+                this.set(field.checked);
+                this.showOrHidePauseButton();
+            });
+        },
+        showOrHidePauseButton: function() {
+            const button = pauseButton.style;
+            if (this.value) {
+                button.display = "revert";
+            } else {
+                button.display = "none";
+            }
         },
     },
     storedUrlList: {
@@ -163,7 +176,6 @@ openButton.onclick = () => {
     openUrls();
 };
 
-const pauseButton = document.getElementById("thePauseButton");
 const pauseState = {
     UNPAUSED: 0,
     PAUSED: 1,
