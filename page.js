@@ -265,7 +265,7 @@ async function openUrls() {
     tabTitleCounter.reset();
     tabTitleCounter.total = urlList.length;
 
-    var useIncognito = incognitoCheckbox.checked;
+    const useIncognito = StoredData.openTabsInIncognito.value;
     chrome.extension.isAllowedIncognitoAccess((allowed) => {
         if (!allowed && useIncognito) { // Stop execution in this case.
             alert("Sequential Mass URL Opener does not currently have permission to open tabs in incognito mode."
