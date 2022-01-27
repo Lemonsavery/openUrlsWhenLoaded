@@ -294,6 +294,7 @@ async function openUrls() {
             .then((result) => {
                 // Begin opening rest of urls.
                 priorTabId = result.id;
+                windowId = undefined;
                 tabTitleCounter.iterate();
                 openTabWhenPriorIsLoaded(1);
             });
