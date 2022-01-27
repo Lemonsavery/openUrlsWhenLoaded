@@ -19,7 +19,7 @@ var StoredData = {
     },
     openToolNewWindow: { /* SETTING: Upon starting this extension, does the tool page open in a new window? 
         If not, it opens in the current window. */
-        value: (localStorage.getItem("openToolNewWindow") ?? "false") === "true",
+        value: (localStorage.getItem("openToolNewWindow") ?? "true") === "true",
         set: function(newVal) { this.value = newVal, localStorage.setItem("openToolNewWindow", newVal); },
         settingId: "openToolNewWindow",
         onStartup: function() {
@@ -72,7 +72,7 @@ var StoredData = {
         },
     },
     showPauseButton: { /* SETTING: Should the pause button be shown, or hidden? */
-        value: (localStorage.getItem("showPauseButton") ?? "false") === "true",
+        value: (localStorage.getItem("showPauseButton") ?? "true") === "true",
         set: function(newVal) { this.value = newVal, localStorage.setItem("showPauseButton", newVal); },
         settingId: "showPauseButton",
         onStartup: function() {
