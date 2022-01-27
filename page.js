@@ -258,14 +258,13 @@ https://www.google.com/search?q=shirt
 https://www.google.com/search?q=pants
 `.trim();
 var urlList = undefined;
-const incognitoCheckbox = document.getElementById("incognitoCheckbox");
 async function openUrls() {
     urlList = getUrls();
     urlList = urlList.length > 0 ? urlList : getUrls(exampleUrls); // Use the example urls if text is empty.
     tabTitleCounter.reset();
     tabTitleCounter.total = urlList.length;
 
-    var useIncognito = incognitoCheckbox.checked;
+    const useIncognito = StoredData.openTabsInIncognito.value;
     chrome.extension.isAllowedIncognitoAccess((allowed) => {
         if (!allowed && useIncognito) { // Stop execution in this case.
             alert("Sequential Mass URL Opener does not currently have permission to open tabs in incognito mode."
@@ -295,6 +294,7 @@ async function openUrls() {
             .then((result) => {
                 // Begin opening rest of urls.
                 priorTabId = result.id;
+                windowId = undefined;
                 tabTitleCounter.iterate();
                 openTabWhenPriorIsLoaded(1);
             });
