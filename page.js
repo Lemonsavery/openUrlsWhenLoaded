@@ -258,7 +258,6 @@ https://www.google.com/search?q=shirt
 https://www.google.com/search?q=pants
 `.trim();
 var urlList = undefined;
-const incognitoCheckbox = document.getElementById("incognitoCheckbox");
 async function openUrls() {
     urlList = getUrls();
     urlList = urlList.length > 0 ? urlList : getUrls(exampleUrls); // Use the example urls if text is empty.
