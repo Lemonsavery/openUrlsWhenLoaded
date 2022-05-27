@@ -37,12 +37,8 @@ var StoredData = {
             var field = document.getElementById(this.settingId);
             field.checked = this.value; // Set the default
 
-            var dependentField = document.getElementById("openTabsInIncognito");
-            dependentField.disabled = field.checked;
-
             field.addEventListener('change', () => {
                 this.set(field.checked);
-                dependentField.disabled = field.checked;
             });
         },
     },
