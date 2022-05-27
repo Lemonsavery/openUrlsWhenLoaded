@@ -334,6 +334,7 @@ function openTabWhenPriorIsLoaded(index) {
                 console.log("All urls have been loaded fully");
                 chrome.tabs.onUpdated.removeListener(thisListener);
                 chrome.tabs.onRemoved.removeListener(thisListener);
+                if (StoredData.closeTabsOnAllComplete.value) { chrome.tabs.remove(allOpenedTabIds); }
                 openButton.enable();
                 if (StoredData.closeOnComplete.value) { window.close(); }
                 return;
