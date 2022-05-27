@@ -312,15 +312,17 @@ async function openUrls() {
 var windowId = undefined;
 var priorTabId = undefined;
 function openTabWhenPriorIsLoaded(index) {
-    if (index >= urlList.length) { // Stop once urlList is fully iterated.
-        console.log("All urls have been opened");
-        openButton.enable();
-        if (StoredData.closeOnComplete.value) { window.close(); }
-        return;
-    }
-
     const thisListener = (tabId, info) => {
         if (tabId === priorTabId && (info.status === "complete" || info.isWindowClosing !== undefined)) {
+            if (index >= urlList.length) { // Stop once urlList is fully iterated (AND LOADED).
+                console.log("All urls have been loaded fully");
+                chrome.tabs.onUpdated.removeListener(thisListener);
+                chrome.tabs.onRemoved.removeListener(thisListener);
+                openButton.enable();
+                if (StoredData.closeOnComplete.value) { window.close(); }
+                return;
+            }
+
             // The tab has loaded or been closed. Time to make another.
             const createTab = () => chrome.tabs.create({
                 "url": urlList[index],
