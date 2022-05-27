@@ -146,6 +146,16 @@ var StoredData = {
     //         theTextArea.value = this.value ?? theTextArea.value;
     //     },
     // },
+    closeTabsOnAllComplete: { /* SETTING: (Special behavior) Once all the tabs have been loaded, should they all be closed? */
+        value: (localStorage.getItem("closeTabsOnAllComplete") ?? "false") === "true",
+        set: function(newVal) { this.value = newVal, localStorage.setItem("closeTabsOnAllComplete", newVal); },
+        settingId: "closeTabsOnAllComplete",
+        onStartup: function() {
+            var field = document.getElementById(this.settingId);
+            field.checked = this.value; // Set the default
+            field.addEventListener('change', () => this.set(field.checked));
+        },
+    },
     _startupOrder: [
         "closeOnComplete",
         "openToolNewWindow",
@@ -155,6 +165,7 @@ var StoredData = {
         "showPauseButton",
         "storedUrlList",
         "showSettings",
+        "closeTabsOnAllComplete",
     ],
 };
 
@@ -265,7 +276,10 @@ https://www.google.com/search?q=shirt
 https://www.google.com/search?q=pants
 `.trim();
 var urlList = undefined;
+var allOpenedTabIds = undefined;
 async function openUrls() {
+    allOpenedTabIds = [];
+
     urlList = getUrls();
     urlList = urlList.length > 0 ? urlList : getUrls(exampleUrls); // Use the example urls if text is empty.
     tabTitleCounter.reset();
@@ -289,6 +303,7 @@ async function openUrls() {
             .then((result) => {
                 // Begin opening rest of urls.
                 priorTabId = result.tabs[0].id;
+                allOpenedTabIds.push(priorTabId);
                 windowId = result.id;
                 tabTitleCounter.iterate();
                 openTabWhenPriorIsLoaded(1);
@@ -301,6 +316,7 @@ async function openUrls() {
             .then((result) => {
                 // Begin opening rest of urls.
                 priorTabId = result.id;
+                allOpenedTabIds.push(priorTabId);
                 windowId = undefined;
                 tabTitleCounter.iterate();
                 openTabWhenPriorIsLoaded(1);
@@ -312,15 +328,18 @@ async function openUrls() {
 var windowId = undefined;
 var priorTabId = undefined;
 function openTabWhenPriorIsLoaded(index) {
-    if (index >= urlList.length) { // Stop once urlList is fully iterated.
-        console.log("All urls have been opened");
-        openButton.enable();
-        if (StoredData.closeOnComplete.value) { window.close(); }
-        return;
-    }
-
     const thisListener = (tabId, info) => {
         if (tabId === priorTabId && (info.status === "complete" || info.isWindowClosing !== undefined)) {
+            if (index >= urlList.length) { // Stop once urlList is fully iterated (AND LOADED).
+                console.log("All urls have been loaded fully");
+                chrome.tabs.onUpdated.removeListener(thisListener);
+                chrome.tabs.onRemoved.removeListener(thisListener);
+                if (StoredData.closeTabsOnAllComplete.value) { chrome.tabs.remove(allOpenedTabIds); }
+                openButton.enable();
+                if (StoredData.closeOnComplete.value) { window.close(); }
+                return;
+            }
+
             // The tab has loaded or been closed. Time to make another.
             const createTab = () => chrome.tabs.create({
                 "url": urlList[index],
@@ -330,6 +349,7 @@ function openTabWhenPriorIsLoaded(index) {
             .then(function(result) {
                 // Prepare for the newly created tab to load, hense creating another tab.
                 priorTabId = result.id;
+                allOpenedTabIds.push(priorTabId);
                 tabTitleCounter.iterate();
                 openTabWhenPriorIsLoaded(++index);
                 chrome.tabs.onUpdated.removeListener(thisListener);
