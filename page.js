@@ -265,7 +265,10 @@ https://www.google.com/search?q=shirt
 https://www.google.com/search?q=pants
 `.trim();
 var urlList = undefined;
+var allOpenedTabIds = undefined;
 async function openUrls() {
+    allOpenedTabIds = [];
+
     urlList = getUrls();
     urlList = urlList.length > 0 ? urlList : getUrls(exampleUrls); // Use the example urls if text is empty.
     tabTitleCounter.reset();
@@ -289,6 +292,7 @@ async function openUrls() {
             .then((result) => {
                 // Begin opening rest of urls.
                 priorTabId = result.tabs[0].id;
+                allOpenedTabIds.push(priorTabId);
                 windowId = result.id;
                 tabTitleCounter.iterate();
                 openTabWhenPriorIsLoaded(1);
@@ -301,6 +305,7 @@ async function openUrls() {
             .then((result) => {
                 // Begin opening rest of urls.
                 priorTabId = result.id;
+                allOpenedTabIds.push(priorTabId);
                 windowId = undefined;
                 tabTitleCounter.iterate();
                 openTabWhenPriorIsLoaded(1);
@@ -332,6 +337,7 @@ function openTabWhenPriorIsLoaded(index) {
             .then(function(result) {
                 // Prepare for the newly created tab to load, hense creating another tab.
                 priorTabId = result.id;
+                allOpenedTabIds.push(priorTabId);
                 tabTitleCounter.iterate();
                 openTabWhenPriorIsLoaded(++index);
                 chrome.tabs.onUpdated.removeListener(thisListener);
