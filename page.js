@@ -37,12 +37,12 @@ var StoredData = {
             var field = document.getElementById(this.settingId);
             field.checked = this.value; // Set the default
 
-            var dependentField = document.getElementById("openTabsInIncognito");
-            dependentField.disabled = field.checked;
-
             field.addEventListener('change', () => {
                 this.set(field.checked);
-                dependentField.disabled = field.checked;
+                if (field.checked) { // openTabsSameWindow & openTabsInIncognito should be mutually exclusive.
+                    document.getElementById(StoredData.openTabsInIncognito.settingId).checked = false;
+                    StoredData.openTabsInIncognito.set(false);
+                }
             });
         },
     },
@@ -67,8 +67,15 @@ var StoredData = {
         settingId: "openTabsInIncognito",
         onStartup: function() {
             var field = document.getElementById(this.settingId);
+            if (StoredData.openTabsSameWindow.value) this.set(false); // If openTabsSameWindow, force openTabsInIncognito to false.
             field.checked = this.value; // Set the default
-            field.addEventListener('change', () => { this.set(field.checked); });
+            field.addEventListener('change', () => {
+                this.set(field.checked);
+                if (field.checked) { // openTabsSameWindow & openTabsInIncognito should be mutually exclusive.
+                    document.getElementById(StoredData.openTabsSameWindow.settingId).checked = false;
+                    StoredData.openTabsSameWindow.set(false);
+                }
+            });
         },
     },
     showPauseButton: { /* SETTING: Should the pause button be shown, or hidden? */
@@ -144,7 +151,7 @@ var StoredData = {
         "openToolNewWindow",
         "openTabsSameWindow",
         "saveUrlList",
-        "openTabsInIncognito",
+        "openTabsInIncognito", // Must come after openTabsSameWindow, as it's value from load may be trumped by openTabsSameWindow.
         "showPauseButton",
         "storedUrlList",
         "showSettings",
