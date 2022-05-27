@@ -146,6 +146,16 @@ var StoredData = {
     //         theTextArea.value = this.value ?? theTextArea.value;
     //     },
     // },
+    closeTabsOnAllComplete: { /* SETTING: (Special behavior) Once all the tabs have been loaded, should they all be closed? */
+        value: (localStorage.getItem("closeTabsOnAllComplete") ?? "false") === "true",
+        set: function(newVal) { this.value = newVal, localStorage.setItem("closeTabsOnAllComplete", newVal); },
+        settingId: "closeTabsOnAllComplete",
+        onStartup: function() {
+            var field = document.getElementById(this.settingId);
+            field.checked = this.value; // Set the default
+            field.addEventListener('change', () => this.set(field.checked));
+        },
+    },
     _startupOrder: [
         "closeOnComplete",
         "openToolNewWindow",
@@ -155,6 +165,7 @@ var StoredData = {
         "showPauseButton",
         "storedUrlList",
         "showSettings",
+        "closeTabsOnAllComplete",
     ],
 };
 
