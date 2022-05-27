@@ -39,6 +39,10 @@ var StoredData = {
 
             field.addEventListener('change', () => {
                 this.set(field.checked);
+                if (field.checked) { // openTabsSameWindow & openTabsInIncognito should be mutually exclusive.
+                    document.getElementById(StoredData.openTabsInIncognito.settingId).checked = false;
+                    StoredData.openTabsInIncognito.set(false);
+                }
             });
         },
     },
@@ -64,7 +68,13 @@ var StoredData = {
         onStartup: function() {
             var field = document.getElementById(this.settingId);
             field.checked = this.value; // Set the default
-            field.addEventListener('change', () => { this.set(field.checked); });
+            field.addEventListener('change', () => {
+                this.set(field.checked);
+                if (field.checked) { // openTabsSameWindow & openTabsInIncognito should be mutually exclusive.
+                    document.getElementById(StoredData.openTabsSameWindow.settingId).checked = false;
+                    StoredData.openTabsSameWindow.set(false);
+                }
+            });
         },
     },
     showPauseButton: { /* SETTING: Should the pause button be shown, or hidden? */
