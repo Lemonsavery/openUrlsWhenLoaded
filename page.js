@@ -67,6 +67,7 @@ var StoredData = {
         settingId: "openTabsInIncognito",
         onStartup: function() {
             var field = document.getElementById(this.settingId);
+            if (StoredData.openTabsSameWindow.value) this.set(false); // If openTabsSameWindow, force openTabsInIncognito to false.
             field.checked = this.value; // Set the default
             field.addEventListener('change', () => {
                 this.set(field.checked);
@@ -150,7 +151,7 @@ var StoredData = {
         "openToolNewWindow",
         "openTabsSameWindow",
         "saveUrlList",
-        "openTabsInIncognito",
+        "openTabsInIncognito", // Must come after openTabsSameWindow, as it's value from load may be trumped by openTabsSameWindow.
         "showPauseButton",
         "storedUrlList",
         "showSettings",
