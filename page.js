@@ -135,17 +135,6 @@ var StoredData = {
             }
         },
     },
-    // urlList4Reload: { // set on refresh
-    //     value: (() => { // Delete this data from localStorage immediately after getting it on startup.
-    //         let list = localStorage.getItem("urlList4Reload");
-    //         localStorage.removeItem("urlList4Reload");
-    //         return list;
-    //     })(),
-    //     set: function(newVal) { this.value = newVal, localStorage.setItem("urlList4Reload", newVal); },
-    //     onStartup: function() {
-    //         theTextArea.value = this.value ?? theTextArea.value;
-    //     },
-    // },
     closeTabsOnAllComplete: { /* SETTING: (Special behavior) Once all the tabs have been loaded, should they all be closed? */
         value: (localStorage.getItem("closeTabsOnAllComplete") ?? "false") === "true",
         set: function(newVal) { this.value = newVal, localStorage.setItem("closeTabsOnAllComplete", newVal); },
