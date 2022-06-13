@@ -145,6 +145,16 @@ let StoredData = {
             field.addEventListener('change', () => this.set(field.checked));
         },
     },
+    closeEachTabOnComplete: { /* SETTING: (Special behavior) Once a tab has been loaded, should it be closed? */
+        value: (localStorage.getItem("closeEachTabOnComplete") ?? "false") === "true",
+        set: function(newVal) { this.value = newVal, localStorage.setItem("closeEachTabOnComplete", newVal); },
+        settingId: "closeEachTabOnComplete",
+        onStartup: function() {
+            let field = document.getElementById(this.settingId);
+            field.checked = this.value; // Set the default
+            field.addEventListener('change', () => this.set(field.checked));
+        },
+    },
     _startupOrder: [
         "closeOnComplete",
         "openToolNewWindow",
@@ -155,6 +165,7 @@ let StoredData = {
         "storedUrlList",
         "showSettings",
         "closeTabsOnAllComplete",
+        "closeEachTabOnComplete",
     ],
 };
 
