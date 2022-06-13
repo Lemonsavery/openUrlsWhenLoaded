@@ -154,6 +154,7 @@ let StoredData = {
             field.checked = this.value; // Set the default
             field.addEventListener('change', () => this.set(field.checked));
         },
+        removeTab: tabId => chrome.tabs.remove(tabId),
     },
     _startupOrder: [
         "closeOnComplete",
@@ -338,7 +339,8 @@ function openTabWhenPriorIsLoaded(index) {
                 console.log("All urls have been loaded fully");
                 chrome.tabs.onUpdated.removeListener(thisListener);
                 chrome.tabs.onRemoved.removeListener(thisListener);
-                if (StoredData.closeTabsOnAllComplete.value) { chrome.tabs.remove(allOpenedTabIds); }
+                if (StoredData.closeEachTabOnComplete.value) { StoredData.closeEachTabOnComplete.removeTab(priorTabId); }
+                else if (StoredData.closeTabsOnAllComplete.value) { chrome.tabs.remove(allOpenedTabIds); } // Ignored if closeEachTabOnComplete is on, since redundant.
                 openButton.enable();
                 if (StoredData.closeOnComplete.value) { window.close(); }
                 return;
@@ -352,6 +354,7 @@ function openTabWhenPriorIsLoaded(index) {
             })
             .then(function(result) {
                 // Prepare for the newly created tab to load, hense creating another tab.
+                if (StoredData.closeEachTabOnComplete.value) { StoredData.closeEachTabOnComplete.removeTab(priorTabId); }
                 priorTabId = result.id;
                 allOpenedTabIds.push(priorTabId);
                 tabTitleCounter.iterate();
