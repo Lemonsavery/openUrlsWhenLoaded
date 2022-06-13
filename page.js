@@ -174,20 +174,21 @@ const tabTitleCounter = {
     }
 };
 
-const openButton = document.getElementById("theOpenButton");
-openButton.enable = () => {
-    openButton.disabled = false;
-    openButton.innerText = "Open All";
-};
-openButton.disable = () => {
-    openButton.disabled = true;
-    openButton.innerText = "Opening";
-};
+const openButton = Object.assign(document.getElementById("theOpenButton"), {
+    enable: function() {
+        this.disabled = false;
+        this.innerText = "Open All";
+    },
+    disable: function() {
+        this.disabled = true;
+        this.innerText = "Opening";
+    },
+    onclick: function() {
+        this.disable();
+        openUrls();
+    },
+});
 openButton.enable();
-openButton.onclick = () => {
-    openButton.disable();
-    openUrls();
-};
 
 const pauseState = {
     UNPAUSED: 0,
