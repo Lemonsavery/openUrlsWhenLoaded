@@ -231,6 +231,9 @@ pauseButton.onclick = () => {
     pauseState.toggle();
 };
 
+document.styleSheets[0].cssRules[0].style.visibility = "unset"; /* Many elements have been changing during startup, 
+and so are hidden. Now that they are stable, unhide them. */
+
 
 
 function getUrls(testingText) {
