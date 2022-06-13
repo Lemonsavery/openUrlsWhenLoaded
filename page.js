@@ -6,13 +6,13 @@ const theTextArea = document.getElementById("theTextArea");
 const pauseButton = document.getElementById("thePauseButton");
 const theSettingsButton = document.getElementById("theSettingsButton");
 const theSettingsDropdown = document.getElementById("Settings");
-var StoredData = {
+let StoredData = {
     closeOnComplete: { /* SETTING: Does the tool close when all urls have been opened? */
         value: (localStorage.getItem("closeOnComplete") ?? "false") === "true",
         set: function(newVal) { this.value = newVal, localStorage.setItem("closeOnComplete", newVal); },
         settingId: "closeOnComplete",
         onStartup: function() {
-            var field = document.getElementById(this.settingId);
+            let field = document.getElementById(this.settingId);
             field.checked = this.value; // Set the default
             field.addEventListener('change', () => { this.set(field.checked); });
         },
@@ -23,7 +23,7 @@ var StoredData = {
         set: function(newVal) { this.value = newVal, localStorage.setItem("openToolNewWindow", newVal); },
         settingId: "openToolNewWindow",
         onStartup: function() {
-            var field = document.getElementById(this.settingId);
+            let field = document.getElementById(this.settingId);
             field.checked = this.value; // Set the default
             field.addEventListener('change', () => { this.set(field.checked); });
         },
@@ -34,7 +34,7 @@ var StoredData = {
         set: function(newVal) { this.value = newVal, localStorage.setItem("openTabsSameWindow", newVal); },
         settingId: "openTabsSameWindow",
         onStartup: function() {
-            var field = document.getElementById(this.settingId);
+            let field = document.getElementById(this.settingId);
             field.checked = this.value; // Set the default
 
             field.addEventListener('change', () => {
@@ -52,7 +52,7 @@ var StoredData = {
         set: function(newVal) { this.value = newVal, localStorage.setItem("saveUrlList", newVal); },
         settingId: "saveUrlList",
         onStartup: function() {
-            var field = document.getElementById(this.settingId);
+            let field = document.getElementById(this.settingId);
             field.checked = this.value; // Set the default
             field.addEventListener('change', () => {
                 this.set(field.checked);
@@ -66,7 +66,7 @@ var StoredData = {
         set: function(newVal) { this.value = newVal, localStorage.setItem("openTabsInIncognito", newVal); },
         settingId: "openTabsInIncognito",
         onStartup: function() {
-            var field = document.getElementById(this.settingId);
+            let field = document.getElementById(this.settingId);
             if (StoredData.openTabsSameWindow.value) this.set(false); // If openTabsSameWindow, force openTabsInIncognito to false.
             field.checked = this.value; // Set the default
             field.addEventListener('change', () => {
@@ -83,7 +83,7 @@ var StoredData = {
         set: function(newVal) { this.value = newVal, localStorage.setItem("showPauseButton", newVal); },
         settingId: "showPauseButton",
         onStartup: function() {
-            var field = document.getElementById(this.settingId);
+            let field = document.getElementById(this.settingId);
             field.checked = this.value; // Set the default
             this.showOrHidePauseButton();
             field.addEventListener('change', () => {
@@ -135,23 +135,12 @@ var StoredData = {
             }
         },
     },
-    // urlList4Reload: { // set on refresh
-    //     value: (() => { // Delete this data from localStorage immediately after getting it on startup.
-    //         let list = localStorage.getItem("urlList4Reload");
-    //         localStorage.removeItem("urlList4Reload");
-    //         return list;
-    //     })(),
-    //     set: function(newVal) { this.value = newVal, localStorage.setItem("urlList4Reload", newVal); },
-    //     onStartup: function() {
-    //         theTextArea.value = this.value ?? theTextArea.value;
-    //     },
-    // },
     closeTabsOnAllComplete: { /* SETTING: (Special behavior) Once all the tabs have been loaded, should they all be closed? */
         value: (localStorage.getItem("closeTabsOnAllComplete") ?? "false") === "true",
         set: function(newVal) { this.value = newVal, localStorage.setItem("closeTabsOnAllComplete", newVal); },
         settingId: "closeTabsOnAllComplete",
         onStartup: function() {
-            var field = document.getElementById(this.settingId);
+            let field = document.getElementById(this.settingId);
             field.checked = this.value; // Set the default
             field.addEventListener('change', () => this.set(field.checked));
         },
@@ -185,20 +174,21 @@ const tabTitleCounter = {
     }
 };
 
-const openButton = document.getElementById("theOpenButton");
-openButton.enable = () => {
-    openButton.disabled = false;
-    openButton.innerText = "Open All";
-};
-openButton.disable = () => {
-    openButton.disabled = true;
-    openButton.innerText = "Opening";
-};
+const openButton = Object.assign(document.getElementById("theOpenButton"), {
+    enable: function() {
+        this.disabled = false;
+        this.innerText = "Open All";
+    },
+    disable: function() {
+        this.disabled = true;
+        this.innerText = "Opening";
+    },
+    onclick: function() {
+        this.disable();
+        openUrls();
+    },
+});
 openButton.enable();
-openButton.onclick = () => {
-    openButton.disable();
-    openUrls();
-};
 
 const pauseState = {
     UNPAUSED: 0,
@@ -275,8 +265,8 @@ https://www.google.com/search?q=shoe
 https://www.google.com/search?q=shirt
 https://www.google.com/search?q=pants
 `.trim();
-var urlList = undefined;
-var allOpenedTabIds = undefined;
+let urlList = undefined;
+let allOpenedTabIds = undefined;
 async function openUrls() {
     allOpenedTabIds = [];
 
@@ -325,8 +315,8 @@ async function openUrls() {
     });
 }
 
-var windowId = undefined;
-var priorTabId = undefined;
+let windowId = undefined;
+let priorTabId = undefined;
 function openTabWhenPriorIsLoaded(index) {
     const thisListener = (tabId, info) => {
         if (tabId === priorTabId && (info.status === "complete" || info.isWindowClosing !== undefined)) {
