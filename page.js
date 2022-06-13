@@ -6,13 +6,13 @@ const theTextArea = document.getElementById("theTextArea");
 const pauseButton = document.getElementById("thePauseButton");
 const theSettingsButton = document.getElementById("theSettingsButton");
 const theSettingsDropdown = document.getElementById("Settings");
-var StoredData = {
+let StoredData = {
     closeOnComplete: { /* SETTING: Does the tool close when all urls have been opened? */
         value: (localStorage.getItem("closeOnComplete") ?? "false") === "true",
         set: function(newVal) { this.value = newVal, localStorage.setItem("closeOnComplete", newVal); },
         settingId: "closeOnComplete",
         onStartup: function() {
-            var field = document.getElementById(this.settingId);
+            let field = document.getElementById(this.settingId);
             field.checked = this.value; // Set the default
             field.addEventListener('change', () => { this.set(field.checked); });
         },
@@ -23,7 +23,7 @@ var StoredData = {
         set: function(newVal) { this.value = newVal, localStorage.setItem("openToolNewWindow", newVal); },
         settingId: "openToolNewWindow",
         onStartup: function() {
-            var field = document.getElementById(this.settingId);
+            let field = document.getElementById(this.settingId);
             field.checked = this.value; // Set the default
             field.addEventListener('change', () => { this.set(field.checked); });
         },
@@ -34,7 +34,7 @@ var StoredData = {
         set: function(newVal) { this.value = newVal, localStorage.setItem("openTabsSameWindow", newVal); },
         settingId: "openTabsSameWindow",
         onStartup: function() {
-            var field = document.getElementById(this.settingId);
+            let field = document.getElementById(this.settingId);
             field.checked = this.value; // Set the default
 
             field.addEventListener('change', () => {
@@ -52,7 +52,7 @@ var StoredData = {
         set: function(newVal) { this.value = newVal, localStorage.setItem("saveUrlList", newVal); },
         settingId: "saveUrlList",
         onStartup: function() {
-            var field = document.getElementById(this.settingId);
+            let field = document.getElementById(this.settingId);
             field.checked = this.value; // Set the default
             field.addEventListener('change', () => {
                 this.set(field.checked);
@@ -66,7 +66,7 @@ var StoredData = {
         set: function(newVal) { this.value = newVal, localStorage.setItem("openTabsInIncognito", newVal); },
         settingId: "openTabsInIncognito",
         onStartup: function() {
-            var field = document.getElementById(this.settingId);
+            let field = document.getElementById(this.settingId);
             if (StoredData.openTabsSameWindow.value) this.set(false); // If openTabsSameWindow, force openTabsInIncognito to false.
             field.checked = this.value; // Set the default
             field.addEventListener('change', () => {
@@ -83,7 +83,7 @@ var StoredData = {
         set: function(newVal) { this.value = newVal, localStorage.setItem("showPauseButton", newVal); },
         settingId: "showPauseButton",
         onStartup: function() {
-            var field = document.getElementById(this.settingId);
+            let field = document.getElementById(this.settingId);
             field.checked = this.value; // Set the default
             this.showOrHidePauseButton();
             field.addEventListener('change', () => {
@@ -140,7 +140,7 @@ var StoredData = {
         set: function(newVal) { this.value = newVal, localStorage.setItem("closeTabsOnAllComplete", newVal); },
         settingId: "closeTabsOnAllComplete",
         onStartup: function() {
-            var field = document.getElementById(this.settingId);
+            let field = document.getElementById(this.settingId);
             field.checked = this.value; // Set the default
             field.addEventListener('change', () => this.set(field.checked));
         },
@@ -264,8 +264,8 @@ https://www.google.com/search?q=shoe
 https://www.google.com/search?q=shirt
 https://www.google.com/search?q=pants
 `.trim();
-var urlList = undefined;
-var allOpenedTabIds = undefined;
+let urlList = undefined;
+let allOpenedTabIds = undefined;
 async function openUrls() {
     allOpenedTabIds = [];
 
@@ -314,8 +314,8 @@ async function openUrls() {
     });
 }
 
-var windowId = undefined;
-var priorTabId = undefined;
+let windowId = undefined;
+let priorTabId = undefined;
 function openTabWhenPriorIsLoaded(index) {
     const thisListener = (tabId, info) => {
         if (tabId === priorTabId && (info.status === "complete" || info.isWindowClosing !== undefined)) {
