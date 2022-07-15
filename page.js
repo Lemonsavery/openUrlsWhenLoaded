@@ -278,25 +278,23 @@ function getUrls(testingText) {
     if (testingText !== undefined) { // Allow for use of hardcoded test input.
         theTextArea.value = testingText;
     }
-    return (
-        theTextArea.value
-        .split("\n")
-        .filter(Boolean)
-        .map((potentialUrl) => { // Try to validate url format.
-            potentialUrl = potentialUrl.trim();
-            try {
-                let url = new URL(potentialUrl);
+
+    let uncleanedUrlList = theTextArea.value.split("\n").filter(Boolean);
+
+    return uncleanedUrlList.map(potentialUrl => { // Try to validate url format.
+        potentialUrl = potentialUrl.trim();
+        try {
+            let url = new URL(potentialUrl);
+            return url.href;
+        } catch {
+            try { // Attempt to fix the url.
+                let url = new URL(`https://${potentialUrl}`);
                 return url.href;
-            } catch {
-                try { // Attempt to fix the url.
-                    let url = new URL(`https://${potentialUrl}`);
-                    return url.href;
-                } catch { // Just return the broken url, and user can fix it.
-                    return potentialUrl;
-                }
+            } catch { // Just return the broken url, and user can fix it.
+                return potentialUrl;
             }
-        })
-    )
+        }
+    });
 }
 
 const exampleUrls = `
