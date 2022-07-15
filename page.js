@@ -156,6 +156,30 @@ let StoredData = {
         },
         removeTab: tabId => chrome.tabs.remove(tabId),
     },
+    openLimitedNumberThenDelete: { /* SETTING: Should only the first N tabs be opened, then removed from the list? */
+        value: (localStorage.getItem("openLimitedNumberThenDelete") ?? "false") === "true",
+        set: function(newVal) { this.value = newVal, localStorage.setItem("openLimitedNumberThenDelete", newVal); },
+        settingId: "openLimitedNumberThenDelete",
+        onStartup: function() {
+            let field = document.getElementById(this.settingId);
+            field.checked = this.value; // Set the default
+            field.addEventListener('change', () => this.set(field.checked));
+        },
+    },
+    openLimitedNumber_number: (() => { /* SETTING: If openLimitedNumberThenDelete is enabled, what is N? */
+        return {
+            value: localStorage.getItem("openLimitedNumber_number") ?? 5,
+            set: function(newVal) {
+                localStorage.setItem("openLimitedNumber_number", this.value);
+                document.getElementById(this.settingId).value = this.value;
+            },
+            settingId: "openLimitedNumber_number",
+            onStartup: function() {
+                let field = document.getElementById(this.settingId);
+                this.set(this.value);
+                field.addEventListener('change', () => this.set(field.value));
+            },
+    }})(),
     _startupOrder: [
         "closeOnComplete",
         "openToolNewWindow",
@@ -167,6 +191,8 @@ let StoredData = {
         "showSettings",
         "closeTabsOnAllComplete",
         "closeEachTabOnComplete",
+        "openLimitedNumberThenDelete",
+        "openLimitedNumber_number",
     ],
 };
 
