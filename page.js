@@ -203,6 +203,10 @@ let StoredData = {
                 this.set(this.value);
                 field.addEventListener('change', () => this.set(field.value));
             },
+            getValueAsNumber: function() {
+                if (this.value === this.VALUE_ALL) return Infinity;
+                return this.value;
+            },
     }})(),
     _startupOrder: [
         "closeOnComplete",
@@ -305,6 +309,7 @@ function getUrls(testingText) {
 
     let uncleanedUrlList = theTextArea.value.split("\n").filter(Boolean);
     if (StoredData.openLimitedNumberThenDelete.value) {
+        uncleanedUrlList = uncleanedUrlList.slice(0, StoredData.openLimitedNumber_number.getValueAsNumber());
         StoredData.openLimitedNumberThenDelete.urlsToRemoveFromTextbox = uncleanedUrlList;
     }
 
