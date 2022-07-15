@@ -180,9 +180,20 @@ let StoredData = {
         },
     },
     openLimitedNumber_number: (() => { /* SETTING: If openLimitedNumberThenDelete is enabled, what is N? */
+        const ALL = "all";
+        const DEFAULT = ALL;
         return {
+            VALUE_ALL: ALL,
+            DEFAULT_VALUE: DEFAULT,
             value: localStorage.getItem("openLimitedNumber_number") ?? 5,
+            validate: function(value) {
+                if (value === this.VALUE_ALL) return value;
+                value = typeof(value) === "string" ? parseInt(value) : value;
+                if (typeof(value) === "number" && value > 0) return value;
+                return this.DEFAULT_VALUE;
+            },
             set: function(newVal) {
+                this.value = this.validate(newVal);
                 localStorage.setItem("openLimitedNumber_number", this.value);
                 document.getElementById(this.settingId).value = this.value;
             },
