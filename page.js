@@ -165,6 +165,19 @@ let StoredData = {
             field.checked = this.value; // Set the default
             field.addEventListener('change', () => this.set(field.checked));
         },
+        urlsToRemoveFromTextbox: [],
+        removeThoseUrlsFromTextbox: function() {
+            if (!this.value) return; // Don't run if setting is disabled.
+
+            /* The \n character padding and replacement is to ensure that only ENTIRE lines are matched, 
+            instead of substrings within a line. */
+            let newTextboxValue = `\n${theTextArea.value}\n`;
+            this.urlsToRemoveFromTextbox.forEach(url => {
+                newTextboxValue = newTextboxValue.replace(`\n${url}\n`, "\n");
+            });
+            theTextArea.value = newTextboxValue.trim();
+            theTextArea.dispatchEvent(new Event('change'));
+        },
     },
     openLimitedNumber_number: (() => { /* SETTING: If openLimitedNumberThenDelete is enabled, what is N? */
         return {
@@ -280,6 +293,9 @@ function getUrls(testingText) {
     }
 
     let uncleanedUrlList = theTextArea.value.split("\n").filter(Boolean);
+    if (StoredData.openLimitedNumberThenDelete.value) {
+        StoredData.openLimitedNumberThenDelete.urlsToRemoveFromTextbox = uncleanedUrlList;
+    }
 
     return uncleanedUrlList.map(potentialUrl => { // Try to validate url format.
         potentialUrl = potentialUrl.trim();
@@ -366,6 +382,7 @@ function openTabWhenPriorIsLoaded(index) {
                 if (StoredData.closeEachTabOnComplete.value) { StoredData.closeEachTabOnComplete.removeTab(priorTabId); }
                 else if (StoredData.closeTabsOnAllComplete.value) { chrome.tabs.remove(allOpenedTabIds); } // Ignored if closeEachTabOnComplete is on, since redundant.
                 openButton.enable();
+                StoredData.openLimitedNumberThenDelete.removeThoseUrlsFromTextbox();
                 if (StoredData.closeOnComplete.value) { window.close(); }
                 return;
             }
