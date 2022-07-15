@@ -34,11 +34,17 @@
         </div>
 
         <button id="theSettingsButton" style="display: block; margin: 24px auto 0px;">Settings</button>
-        <div id="Settings" style="padding: 0 15px; margin-top: 5px;">
-            <div style="margin-right: 45px;">
+        <div id="Settings" style="padding: 0 15px; margin-top: 5px; text-align: left;">
+            <div style="padding-right: 3em; width: 17em;">
                 <p style="display: flex;"><input type="checkbox" id="closeOnComplete">Close tool when list is completed.</p>
                 <p style="display: flex;"><input type="checkbox" id="saveUrlList">Save url list in this tool.</p>
                 <p style="display: flex;"><input type="checkbox" id="showPauseButton">Show pause button.</p>
+                <p style="display: flex;"><input type="checkbox" id="openLimitedNumberThenDelete" style="margin-bottom: auto;">
+                    <span><style>#openLimitedNumber_number:hover { filter: brightness(0.95); }</style>
+                        Only open top&nbsp;<input type="text" id="openLimitedNumber_number" style="height: 1em; width: 7em; font-size: inherit; font-family: inherit;">,<br>
+                        then remove them from list.
+                    </span>
+                </p>
             </div>
             <div>
                 <p style="display: flex;"><input type="checkbox" id="openToolNewWindow">Open this tool in new window.</p>
@@ -54,7 +60,7 @@
         </div>
 
         <a href="https://github.com/Lemonsavery/openUrlsWhenLoaded" target="_blank"><img src="GitHub-Mark-32px.png" height="32px" width="32px" style="margin-top: 20px;"></a>
-        <div style="text-align: center;">2.2</div>
+        <div style="text-align: center;">2.3</div>
     </div>
     <script type="text/javascript" src="page.js"></script>
 </body>

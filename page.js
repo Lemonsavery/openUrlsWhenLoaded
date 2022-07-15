@@ -156,6 +156,58 @@ let StoredData = {
         },
         removeTab: tabId => chrome.tabs.remove(tabId),
     },
+    openLimitedNumberThenDelete: { /* SETTING: Should only the first N tabs be opened, then removed from the list? */
+        value: (localStorage.getItem("openLimitedNumberThenDelete") ?? "false") === "true",
+        set: function(newVal) { this.value = newVal, localStorage.setItem("openLimitedNumberThenDelete", newVal); },
+        settingId: "openLimitedNumberThenDelete",
+        onStartup: function() {
+            let field = document.getElementById(this.settingId);
+            field.checked = this.value; // Set the default
+            field.addEventListener('change', () => this.set(field.checked));
+        },
+        urlsToRemoveFromTextbox: [],
+        removeThoseUrlsFromTextbox: function() {
+            if (!this.value) return; // Don't run if setting is disabled.
+
+            /* The \n character padding and replacement is to ensure that only ENTIRE lines are matched, 
+            instead of substrings within a line. */
+            let newTextboxValue = `\n${theTextArea.value}\n`;
+            this.urlsToRemoveFromTextbox.forEach(url => {
+                newTextboxValue = newTextboxValue.replace(`\n${url}\n`, "\n");
+            });
+            theTextArea.value = newTextboxValue.trim();
+            theTextArea.dispatchEvent(new Event('change'));
+        },
+    },
+    openLimitedNumber_number: (() => { /* SETTING: If openLimitedNumberThenDelete is enabled, what is N? */
+        const ALL = "all";
+        const DEFAULT = ALL;
+        return {
+            VALUE_ALL: ALL,
+            DEFAULT_VALUE: DEFAULT,
+            value: localStorage.getItem("openLimitedNumber_number") ?? 5,
+            validate: function(value) {
+                if (value === this.VALUE_ALL) return value;
+                value = typeof(value) === "string" ? parseInt(value) : value;
+                if (typeof(value) === "number" && value > 0) return value;
+                return this.DEFAULT_VALUE;
+            },
+            set: function(newVal) {
+                this.value = this.validate(newVal);
+                localStorage.setItem("openLimitedNumber_number", this.value);
+                document.getElementById(this.settingId).value = this.value;
+            },
+            settingId: "openLimitedNumber_number",
+            onStartup: function() {
+                let field = document.getElementById(this.settingId);
+                this.set(this.value);
+                field.addEventListener('change', () => this.set(field.value));
+            },
+            getValueAsNumber: function() {
+                if (this.value === this.VALUE_ALL) return Infinity;
+                return this.value;
+            },
+    }})(),
     _startupOrder: [
         "closeOnComplete",
         "openToolNewWindow",
@@ -167,6 +219,8 @@ let StoredData = {
         "showSettings",
         "closeTabsOnAllComplete",
         "closeEachTabOnComplete",
+        "openLimitedNumberThenDelete",
+        "openLimitedNumber_number",
     ],
 };
 
@@ -252,25 +306,27 @@ function getUrls(testingText) {
     if (testingText !== undefined) { // Allow for use of hardcoded test input.
         theTextArea.value = testingText;
     }
-    return (
-        theTextArea.value
-        .split("\n")
-        .filter(Boolean)
-        .map((potentialUrl) => { // Try to validate url format.
-            potentialUrl = potentialUrl.trim();
-            try {
-                let url = new URL(potentialUrl);
+
+    let uncleanedUrlList = theTextArea.value.split("\n").filter(Boolean);
+    if (StoredData.openLimitedNumberThenDelete.value) {
+        uncleanedUrlList = uncleanedUrlList.slice(0, StoredData.openLimitedNumber_number.getValueAsNumber());
+        StoredData.openLimitedNumberThenDelete.urlsToRemoveFromTextbox = uncleanedUrlList;
+    }
+
+    return uncleanedUrlList.map(potentialUrl => { // Try to validate url format.
+        potentialUrl = potentialUrl.trim();
+        try {
+            let url = new URL(potentialUrl);
+            return url.href;
+        } catch {
+            try { // Attempt to fix the url.
+                let url = new URL(`https://${potentialUrl}`);
                 return url.href;
-            } catch {
-                try { // Attempt to fix the url.
-                    let url = new URL(`https://${potentialUrl}`);
-                    return url.href;
-                } catch { // Just return the broken url, and user can fix it.
-                    return potentialUrl;
-                }
+            } catch { // Just return the broken url, and user can fix it.
+                return potentialUrl;
             }
-        })
-    )
+        }
+    });
 }
 
 const exampleUrls = `
@@ -342,6 +398,7 @@ function openTabWhenPriorIsLoaded(index) {
                 if (StoredData.closeEachTabOnComplete.value) { StoredData.closeEachTabOnComplete.removeTab(priorTabId); }
                 else if (StoredData.closeTabsOnAllComplete.value) { chrome.tabs.remove(allOpenedTabIds); } // Ignored if closeEachTabOnComplete is on, since redundant.
                 openButton.enable();
+                StoredData.openLimitedNumberThenDelete.removeThoseUrlsFromTextbox();
                 if (StoredData.closeOnComplete.value) { window.close(); }
                 return;
             }
