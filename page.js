@@ -208,6 +208,19 @@ let StoredData = {
                 return this.value;
             },
     }})(),
+    themeColor: { /* SETTING: What should the tool's background color be? */
+        value: localStorage.getItem("background-color") ?? "#ffffff",
+        set: function(newVal) { this.value = newVal, localStorage.setItem("background-color", newVal); },
+        settingId: "colorPicker",
+        onStartup: function() {
+            const inputElement = document.getElementById(this.settingId);
+            inputElement.value = this.value; // Set the default
+            
+            inputElement.addEventListener('input', () => {
+                this.set(inputElement.value);
+            });
+        },
+    },
     _startupOrder: [
         "closeOnComplete",
         "openToolNewWindow",
@@ -221,6 +234,7 @@ let StoredData = {
         "closeEachTabOnComplete",
         "openLimitedNumberThenDelete",
         "openLimitedNumber_number",
+        "themeColor",
     ],
 };
 
