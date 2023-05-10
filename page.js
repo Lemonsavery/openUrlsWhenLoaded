@@ -125,11 +125,11 @@ let StoredData = {
             const button = theSettingsButton.style;
             const dropdown = theSettingsDropdown.style;
             if (this.value) {
-                button["background-color"] = "lightgray";
+                button["background-color"] = "hsl(0deg 0% 45% / 30%)";
                 dropdown["border-style"] = "groove";
                 dropdown.display = "inline-flex";
             } else {
-                button["background-color"] = "revert";
+                button["background-color"] = "";
                 dropdown["border-style"] = "revert";
                 dropdown.display = "none";
             }
@@ -231,7 +231,24 @@ let StoredData = {
             const too_dark = this.HEXtoHSL(hex_color).l < 45;
             const text_color = too_dark ? "white" : "black";
             htmlElementStyle.setProperty("--textColor", text_color);
+            
+            this.handleWhiteEdgecase(hex_color);
         },
+        handleWhiteEdgecase: (() => {/* In order to preserve user agent stylesheet styling of inputs, 
+            our background color styling class should be removed while background color is white. */
+            let was_white_just_previously = true;
+            const elementList = document.querySelectorAll(".uses-theme-colored-background");
+            return hex_color => {
+                let enable;
+                if (hex_color === "#ffffff") { // Are we setting color to white?
+                    enable = false;
+                    was_white_just_previously = true;
+                } else if (was_white_just_previously) {
+                    enable = true;
+                } else { return; } // Do nothing.
+                elementList.forEach(x=>x.classList.toggle("uses-theme-colored-background", enable));
+            };
+        })(),
         HEXtoHSL: function(a){3===(a=a.replace(/#/g,"")).length&&(a=a.split("").map(function(a){return a+a}).join(""));var r=/^([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})[\da-z]{0,0}$/i.exec(a);if(!r)return null;var e=parseInt(r[1],16),n=parseInt(r[2],16),$=parseInt(r[3],16);e/=255;var i,t,u=Math.max(e,n/=255,$/=255),c=Math.min(e,n,$),d=(u+c)/2;if(u==c)i=t=0;else{var f=u-c;switch(t=d>.5?f/(2-u-c):f/(u+c),u){case e:i=(n-$)/f+(n<$?6:0);break;case n:i=($-e)/f+2;break;case $:i=(e-n)/f+4}i/=6}return t*=100,t=Math.round(t),d*=100,d=Math.round(d),{h:i=Math.round(360*i),s:t,l:d}}, // https://www.html-code-generator.com/javascript/color-converter-script
     },
     _startupOrder: [
