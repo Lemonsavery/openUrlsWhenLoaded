@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="uses-theme-colored-background uses-theme-colored-text">
 <head>
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
@@ -7,7 +7,13 @@
     <title>Sequential Mass URL Opener</title>
 </head>
 <body>
-    <style> .hide-until-ui-stable { visibility: hidden; } </style>
+    <style>
+        .hide-until-ui-stable { visibility: hidden; }
+        
+        .uses-theme-colored-background { background-color: var(--backgroundColor); }
+        .uses-theme-colored-text::placeholder,
+        .uses-theme-colored-text { color: var(--textColor); }
+    </style>
 
     <div class="hide-until-ui-stable" style="text-align: center; max-width: 769px; margin: auto;">
         <div><p>
@@ -26,14 +32,15 @@
             cols="50"
             spellcheck="false"
             style="white-space: nowrap; border: 1px solid lightgray; border-radius: 5px;"
+            class="uses-theme-colored-background uses-theme-colored-text"
         ></textarea>
         <div>
             <div style="display: inline-block;"></div>
-            <button id="theOpenButton">Open All</button>
-            <button id="thePauseButton">Pause</button>
+            <button id="theOpenButton" class="uses-theme-colored-background uses-theme-colored-text">Open All</button>
+            <button id="thePauseButton" class="uses-theme-colored-background uses-theme-colored-text">Pause</button>
         </div>
 
-        <button id="theSettingsButton" style="display: block; margin: 24px auto 0px;">Settings</button>
+        <button id="theSettingsButton" style="display: block; margin: 24px auto 0px;" class="uses-theme-colored-background uses-theme-colored-text">Settings</button>
         <div id="Settings" style="padding: 0 15px; margin-top: 5px; text-align: left;">
             <div style="padding-right: 3em; width: 17em;">
                 <p style="display: flex;"><input type="checkbox" id="closeOnComplete">Close tool when list is completed.</p>
@@ -41,9 +48,12 @@
                 <p style="display: flex;"><input type="checkbox" id="showPauseButton">Show pause button.</p>
                 <p style="display: flex;"><input type="checkbox" id="openLimitedNumberThenDelete" style="margin-bottom: auto;">
                     <span><style>#openLimitedNumber_number:hover { filter: brightness(0.95); }</style>
-                        Only open top&nbsp;<input type="text" id="openLimitedNumber_number" style="height: 1em; width: 7em; font-size: inherit; font-family: inherit;">,<br>
+                        Only open top&nbsp;<input type="text" id="openLimitedNumber_number" style="height: 1em; width: 7em; font-size: inherit; font-family: inherit;" class="uses-theme-colored-background uses-theme-colored-text">,<br>
                         then remove them from list.
                     </span>
+                </p>
+                <p style="display: flex;"><input type="color" id="colorPicker">
+                    <span style="align-self: center; padding-bottom: 0.3em; padding-left: 0.3em;">Background color.</span>
                 </p>
             </div>
             <div>
@@ -60,7 +70,7 @@
         </div>
 
         <a href="https://github.com/Lemonsavery/openUrlsWhenLoaded" target="_blank"><img src="GitHub-Mark-32px.png" height="32px" width="32px" style="margin-top: 20px;"></a>
-        <div style="text-align: center;">2.3</div>
+        <div style="text-align: center;">2.4</div>
     </div>
     <script type="text/javascript" src="page.js"></script>
 </body>
