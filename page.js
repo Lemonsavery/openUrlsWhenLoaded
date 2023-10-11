@@ -274,6 +274,27 @@ for (key of StoredData._startupOrder) {
 
 
 
+const linesSelectedDisplayer = {
+    displayerElement: document.getElementById("lines-selected-number-span"),
+    line_count: "",
+    onStartup: function() {
+        theTextArea.addEventListener("select", () => {
+            this.line_count = window.getSelection().toString().split(/\r|\r\n|\n/).length;
+            this.render();
+        });
+        theTextArea.addEventListener("focusout", () => {
+            this.line_count = "";
+            this.render();
+        });
+        
+        this.render();
+    },
+    render: function() {
+        this.displayerElement.innerText = this.line_count;
+    },
+};
+linesSelectedDisplayer.onStartup();
+
 const tabTitleCounter = {
     loaded: 0,
     total: 0,
