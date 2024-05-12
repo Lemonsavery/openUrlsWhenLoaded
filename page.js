@@ -523,7 +523,9 @@ function openTabWhenPriorIsLoaded(index) {
             })
             .catch((error) => {
                 if (error == "Error: Tabs cannot be edited right now (user may be dragging a tab).") {
-                    createTab(); // Just try again.
+                    setTimeout(createTab, 1000); /* Just try again. 
+                    The long setTimeout addition 'potentially' makes a certain bug much rarer, where two copies of a new tab are opened instead of one. 
+                    I've also triggered the bug before by running the opener with DevTools and breakpoints on. */
                 } else {
                     console.error(error);
                     chrome.tabs.onUpdated.removeListener(thisListener);
