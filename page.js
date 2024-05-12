@@ -208,6 +208,40 @@ let StoredData = {
                 return this.value;
             },
     }})(),
+    suspendBeyondMaxTabs: { /* SETTING: Should tabs not be opened while there's N or more open tabs in the window? */
+        value: (localStorage.getItem("suspendBeyondMaxTabs") ?? "false") === "true",
+        set: function(newVal) {
+            this.value = newVal;
+            localStorage.setItem("suspendBeyondMaxTabs", newVal);
+        },
+        settingId: "suspendBeyondMaxTabs",
+        onStartup: function() {
+            let field = document.getElementById(this.settingId);
+            field.checked = this.value; // Set the default
+            field.addEventListener('change', () => this.set(field.checked));
+        },
+    },
+    suspendBeyondMaxTabs_number: { /* SETTING: If suspendBeyondMaxTabs is enabled, what is N? */
+        DEFAULT_VALUE: 2,
+        value: localStorage.getItem("suspendBeyondMaxTabs_number") ?? 10,
+        validate: function(value) {
+            value = typeof(value) === "string" ? parseInt(value) : value;
+            if (typeof(value) === "number" && value > 1) return value;
+            return this.DEFAULT_VALUE;
+        },
+        set: function(newVal) {
+            this.value = this.validate(newVal);
+            localStorage.setItem("suspendBeyondMaxTabs_number", this.value);
+            let field = document.getElementById(this.settingId);
+            field.value = this.value;
+        },
+        settingId: "suspendBeyondMaxTabs_number",
+        onStartup: function() {
+            let field = document.getElementById(this.settingId);
+            this.set(this.value);
+            field.addEventListener('change', () => this.set(field.value));
+        },
+    },
     themeColor: { /* SETTING: What should the tool's background color be? */
         value: localStorage.getItem("background-color") ?? "#ffffff",
         set: function(newVal) { this.value = newVal, localStorage.setItem("background-color", newVal); },
@@ -264,6 +298,8 @@ let StoredData = {
         "closeEachTabOnComplete",
         "openLimitedNumberThenDelete",
         "openLimitedNumber_number",
+        "suspendBeyondMaxTabs",
+        "suspendBeyondMaxTabs_number",
         "themeColor",
     ],
 };
