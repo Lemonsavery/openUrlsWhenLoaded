@@ -45,6 +45,7 @@ let StoredData = {
                 }
             });
         },
+        value_unchanged_during_tab_opening: undefined,
     },
     saveUrlList: { /* SETTING: Should the textbox text be saved for future openings of this extension, 
         or not? */
@@ -209,10 +210,12 @@ let StoredData = {
             },
     }})(),
     suspendBeyondMaxTabs: { /* SETTING: Should tabs not be opened while there's N or more open tabs in the window? */
+        EVENT_STRING_SET: 'suspendBeyondMaxTabs set',
         value: (localStorage.getItem("suspendBeyondMaxTabs") ?? "false") === "true",
         set: function(newVal) {
             this.value = newVal;
             localStorage.setItem("suspendBeyondMaxTabs", newVal);
+            document.getElementById(this.settingId).dispatchEvent(new Event(this.EVENT_STRING_SET));
         },
         settingId: "suspendBeyondMaxTabs",
         onStartup: function() {
@@ -220,9 +223,16 @@ let StoredData = {
             field.checked = this.value; // Set the default
             field.addEventListener('change', () => this.set(field.checked));
         },
+        addSetListener: function(listener) {
+            document.getElementById(this.settingId).addEventListener(this.EVENT_STRING_SET, listener);
+        },
+        removeSetListener: function(listener) {
+            document.getElementById(this.settingId).removeEventListener(this.EVENT_STRING_SET, listener);
+        },
     },
     suspendBeyondMaxTabs_number: { /* SETTING: If suspendBeyondMaxTabs is enabled, what is N? */
         DEFAULT_VALUE: 2,
+        EVENT_STRING_SET: 'suspendBeyondMaxTabs_number set',
         value: localStorage.getItem("suspendBeyondMaxTabs_number") ?? 10,
         validate: function(value) {
             value = typeof(value) === "string" ? parseInt(value) : value;
@@ -234,12 +244,31 @@ let StoredData = {
             localStorage.setItem("suspendBeyondMaxTabs_number", this.value);
             let field = document.getElementById(this.settingId);
             field.value = this.value;
+            field.dispatchEvent(new Event(this.EVENT_STRING_SET));
         },
         settingId: "suspendBeyondMaxTabs_number",
         onStartup: function() {
             let field = document.getElementById(this.settingId);
             this.set(this.value);
             field.addEventListener('change', () => this.set(field.value));
+        },
+        addSetListener: function(listener) {
+            document.getElementById(this.settingId).addEventListener(this.EVENT_STRING_SET, listener);
+        },
+        removeSetListener: function(listener) {
+            document.getElementById(this.settingId).removeEventListener(this.EVENT_STRING_SET, listener);
+        },
+        isMaxTabsReached: async function() {
+            if (!StoredData.suspendBeyondMaxTabs.value) return false; // If setting isn't on, don't even check if max tabs is reached.
+            
+            let window_id_to_find_number_of_tabs_in = windowId;
+            if (StoredData.openTabsSameWindow.value_unchanged_during_tab_opening) {
+                // Tab opener tab may change which window it's on, so we need to check the window id each time.
+                window_id_to_find_number_of_tabs_in = (await chrome.windows.getCurrent()).id;
+            }
+            
+            const number_of_tabs_in_window = (await chrome.tabs.query({windowId: window_id_to_find_number_of_tabs_in})).length;
+            return number_of_tabs_in_window >= this.value;
         },
     },
     themeColor: { /* SETTING: What should the tool's background color be? */
@@ -442,6 +471,7 @@ let urlList = undefined;
 let allOpenedTabIds = undefined;
 async function openUrls() {
     allOpenedTabIds = [];
+    StoredData.openTabsSameWindow.value_unchanged_during_tab_opening = StoredData.openTabsSameWindow.value;
 
     urlList = getUrls();
     urlList = urlList.length > 0 ? urlList : getUrls(exampleUrls); // Use the example urls if text is empty.
@@ -548,4 +578,33 @@ function openTabWhenPriorIsLoaded(index) {
     }
     chrome.tabs.onUpdated.addListener(thisListener);
     chrome.tabs.onRemoved.addListener(thisListener);
+}
+
+async function isPausedOrMaxTabsReached() {
+    return pauseState.isPaused || await StoredData.suspendBeyondMaxTabs_number.isMaxTabsReached();
+}
+
+let one_last_createTab_has_not_yet_been_fired_to_trigger_the_alert = true; // Once the alert triggers, the opener should be refreshed, so it doesn't matter that this is global.
+async function interruptTabOpening(createTab, thisListener) {
+    const checkResumeConditions = async (p1, p2) => {
+        if (await isPausedOrMaxTabsReached()) return;
+        
+        // All clear. Keep opening tabs.
+        pauseButton.removeEventListener("unpause", checkResumeConditions);
+        StoredData.suspendBeyondMaxTabs.removeSetListener(checkResumeConditions);
+        StoredData.suspendBeyondMaxTabs_number.removeSetListener(checkResumeConditions);
+        chrome.tabs.onRemoved.removeListener(checkResumeConditions);
+        chrome.tabs.onAttached.removeListener(checkResumeConditions);
+        createTab();
+    };
+    
+    // Events that may possibly resume tab opening.
+    pauseButton.addEventListener("unpause", checkResumeConditions); // If the pause button is unpaused.
+    StoredData.suspendBeyondMaxTabs.addSetListener(checkResumeConditions); // If the setting changes.
+    StoredData.suspendBeyondMaxTabs_number.addSetListener(checkResumeConditions); // If the setting changes.
+    chrome.tabs.onRemoved.addListener(checkResumeConditions); // If a tab is removed.
+    chrome.tabs.onAttached.addListener(checkResumeConditions); // If a tab is attached to a window. (seems to trigger reliably on detach as well, so we're using it)
+    
+    chrome.tabs.onUpdated.removeListener(thisListener);
+    chrome.tabs.onRemoved.removeListener(thisListener);
 }
