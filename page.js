@@ -587,6 +587,24 @@ async function isPausedOrMaxTabsReached() {
 let one_last_createTab_has_not_yet_been_fired_to_trigger_the_alert = true; // Once the alert triggers, the opener should be refreshed, so it doesn't matter that this is global.
 async function interruptTabOpening(createTab, thisListener) {
     const checkResumeConditions = async (p1, p2) => {
+        // If the focused tab, the only tab that can be dragged (I think), is being dragged, just try again later. Otherwise continue.
+        const focusedTab = (await chrome.tabs.query({active: true, windowId: (await chrome.windows.getLastFocused()).id}))[0];
+        try {
+            await chrome.tabs.move(focusedTab.id, {index: focusedTab.index}); // Will error if the tab is being dragged.
+        } catch {
+            // Focused tab is being dragged. Try again later.
+            setTimeout(() => checkResumeConditions(p1, p2), 1000);
+            return;
+        }
+        
+        // No reason to check for resume conditions if the window is closing. (isWindowClosing is a chrome.tabs.onRemoved parameter)
+        if (p2?.isWindowClosing && !StoredData.openTabsSameWindow.value_unchanged_during_tab_opening && p2.windowId == windowId) {
+            // Trigger the alert, but only once. Every tab on that now-closed window will trigger this, so we have to make sure it only happens once.
+            if (one_last_createTab_has_not_yet_been_fired_to_trigger_the_alert) createTab();
+            one_last_createTab_has_not_yet_been_fired_to_trigger_the_alert = false;
+            return;
+        };
+        
         if (await isPausedOrMaxTabsReached()) return;
         
         // All clear. Keep opening tabs.
