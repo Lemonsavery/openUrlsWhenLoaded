@@ -479,7 +479,7 @@ async function openUrls() {
     tabTitleCounter.total = urlList.length;
 
     const useIncognito = StoredData.openTabsInIncognito.value;
-    chrome.extension.isAllowedIncognitoAccess((allowed) => {
+    chrome.extension.isAllowedIncognitoAccess(async (allowed) => {
         if (!allowed && useIncognito) { // Stop execution in this case.
             alert("Sequential Mass URL Opener does not currently have permission to open tabs in incognito mode."
             +"\n\nTo give it permission, go to your Chrome Menu > More Tools > Extensions, find the "
@@ -489,7 +489,7 @@ async function openUrls() {
 
         if (!StoredData.openTabsSameWindow.value) { // Open tabs into a new window.
             chrome.windows.create({ // Only the first url is opened this here.
-                "url": urlList[0], 
+                "url": urlList[0],
                 "incognito": useIncognito,
                 "state": "minimized"
             })
@@ -502,18 +502,26 @@ async function openUrls() {
                 openTabWhenPriorIsLoaded(1);
             });
         } else { // Open tabs into current window. Incognito is not an option here.
-            chrome.tabs.create({ // Only the first url is opened this here.
-                "url": urlList[0], 
-                "active": false
-            })
-            .then((result) => {
-                // Begin opening rest of urls.
-                priorTabId = result.id;
-                allOpenedTabIds.push(priorTabId);
-                windowId = undefined;
-                tabTitleCounter.iterate();
-                openTabWhenPriorIsLoaded(1);
-            });
+            const createFirstTab = () => {
+                chrome.tabs.create({ // Only the first url is opened this here.
+                    "url": urlList[0],
+                    "active": false
+                })
+                .then((result) => {
+                    // Begin opening rest of urls.
+                    priorTabId = result.id;
+                    allOpenedTabIds.push(priorTabId);
+                    windowId = undefined;
+                    tabTitleCounter.iterate();
+                    openTabWhenPriorIsLoaded(1);
+                });
+            };
+            // If max tabs is already reached before starting, then wait just like a normal interrupt.
+            if (await isPausedOrMaxTabsReached()) {
+                interruptTabOpening(createFirstTab, undefined);
+            } else {
+                createFirstTab();
+            }
         }
     });
 }
@@ -566,14 +574,14 @@ function openTabWhenPriorIsLoaded(index) {
                 }
             });
 
-            if (pauseState.isPaused) {
-                // If paused, continue once unpaused.
-                pauseButton.addEventListener("unpause", function() { createTab(); }, {once: true});
-                chrome.tabs.onUpdated.removeListener(thisListener);
-                chrome.tabs.onRemoved.removeListener(thisListener);
-            } else {
-                createTab();
-            }
+            // Determine whether tab opening should be interrupted.
+            (async () => {
+                if (await isPausedOrMaxTabsReached()) {
+                    interruptTabOpening(createTab, thisListener);
+                } else {
+                    createTab();
+                }
+            })(); // async wrapper here means I don't need to make thisListener and openTabWhenPriorIsLoaded async.
         }
     }
     chrome.tabs.onUpdated.addListener(thisListener);
