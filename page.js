@@ -607,10 +607,9 @@ async function interruptTabOpening(createTab, thisListener) {
         
         // No reason to check for resume conditions if the window is closing. (isWindowClosing is a chrome.tabs.onRemoved parameter)
         if (p2?.isWindowClosing && !StoredData.openTabsSameWindow.value_unchanged_during_tab_opening && p2.windowId == windowId) {
-            // Trigger the alert, but only once. Every tab on that now-closed window will trigger this, so we have to make sure it only happens once.
-            if (one_last_createTab_has_not_yet_been_fired_to_trigger_the_alert) createTab();
+            // Let it through to createTab() to fire the alert, but only once. Every tab on that now-closed window will trigger this, so we have to make sure it only happens once.
+            if (!one_last_createTab_has_not_yet_been_fired_to_trigger_the_alert) return;
             one_last_createTab_has_not_yet_been_fired_to_trigger_the_alert = false;
-            return;
         };
         
         if (await isPausedOrMaxTabsReached()) return;
