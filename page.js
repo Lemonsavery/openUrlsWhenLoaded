@@ -135,6 +135,22 @@ let StoredData = {
             }
         },
     },
+    completedListsModN: { // How many lists have been fully opened, mod N.
+        N: 4,
+        get: () => {
+            let x = parseInt(localStorage.getItem("completedListsModN"));
+            return isNaN(x) ? 0 : x;
+        },
+        set: (newVal) => localStorage.setItem("completedListsModN", newVal),
+        iterate: function() {
+            const value = (this.get()+1) % this.N;
+            this.set(value);
+        },
+    },
+    neverShowReviewDialogAgain: { // Should the review dialog box never be opened again?
+        get: () => (localStorage.getItem("neverShowReviewDialogAgain") ?? "false") === "true",
+        set: (newVal) => localStorage.setItem("neverShowReviewDialogAgain", newVal),
+    },
     closeTabsOnAllComplete: { /* SETTING: (Special behavior) Once all the tabs have been loaded, should they all be closed? */
         value: (localStorage.getItem("closeTabsOnAllComplete") ?? "false") === "true",
         set: function(newVal) { this.value = newVal, localStorage.setItem("closeTabsOnAllComplete", newVal); },
@@ -285,6 +301,9 @@ const reviewBoxDisplayer = {
         });
         this.chromeWebstoreLinkButtonElement.addEventListener("click", () => {
             window.open("https://chromewebstore.google.com/detail/sequential-mass-url-opene/lgffephbjkjmkdipchghjadbeppgojhk");
+        });
+        this.neverShowAgainCheckboxElement.addEventListener("change", () => {
+            StoredData.neverShowReviewDialogAgain.set(this.neverShowAgainCheckboxElement.checked);
         });
     },
 };
