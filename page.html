@@ -52,17 +52,22 @@
                         then remove them from list.
                     </span>
                 </p>
+                <p style="display: flex;"><input type="checkbox" id="suspendBeyondMaxTabs" style="margin-bottom: auto;">
+                    <span><style>#suspendBeyondMaxTabs_number:hover { filter: brightness(0.95); }</style>
+                        Beyond&nbsp;<input type="text" id="suspendBeyondMaxTabs_number" style="height: 1em; width: 7em; font-size: inherit; font-family: inherit;" class="uses-theme-colored-background uses-theme-colored-text">&nbsp;tabs in window, suspend opening.
+                    </span>
+                </p>
                 <p style="display: flex;"><input type="color" id="colorPicker">
                     <span style="align-self: center; padding-bottom: 0.3em; padding-left: 0.3em;">Background color.</span>
                 </p>
             </div>
-            <div>
+            <div style="position: relative;">
                 <p style="display: flex;"><input type="checkbox" id="openToolNewWindow">Open this tool in new window.</p>
                 <p style="display: flex;"><input type="checkbox" id="openTabsSameWindow">Open tabs in same window as tool.</p>
                 <p style="display: flex;"><input type="checkbox" id="openTabsInIncognito">Open tabs in incognito.</p>
                 <p style="display: flex;"><input type="checkbox" id="closeTabsOnAllComplete">Once all tabs are loaded, close them.</p>
                 <p style="display: flex;"><input type="checkbox" id="closeEachTabOnComplete">Once a tab is loaded, close it.</p>
-                <p style="display: flex; margin-bottom: 0; justify-content: right; filter: opacity(0.6);">
+                <p style="display: flex; justify-content: right; filter: opacity(0.6); position: absolute; bottom: 0; right: 0; margin-bottom: 0.6em;">
                     <span id="lines-selected-number-span"></span>&nbsp;lines selected
                 </p>
             </div>
@@ -73,7 +78,7 @@
         </div>
 
         <a href="https://github.com/Lemonsavery/openUrlsWhenLoaded" target="_blank"><img src="GitHub-Mark-32px.png" height="32px" width="32px" style="margin-top: 20px;"></a>
-        <div style="text-align: center;">2.6</div>
+        <div style="text-align: center;">2.7</div>
     </div>
 
     <dialog id="theReviewDialogBox">
