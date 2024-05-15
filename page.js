@@ -274,6 +274,24 @@ for (key of StoredData._startupOrder) {
 
 
 
+const reviewBoxDisplayer = {
+    dialogBoxElement: document.getElementById("theReviewDialogBox"),
+    chromeWebstoreLinkButtonElement: document.getElementById("theReviewDialogBoxChromeWebStoreLinkButton"),
+    closeButtonElement: document.getElementById("theReviewDialogBoxCloseButton"),
+    neverShowAgainCheckboxElement: document.getElementById("theReviewDialogBoxNeverShowAgainCheckbox"),
+    onStartup: function() {
+        this.closeButtonElement.addEventListener("click", () => {
+            this.dialogBoxElement.close();
+        });
+        this.chromeWebstoreLinkButtonElement.addEventListener("click", () => {
+            window.open("https://chromewebstore.google.com/detail/sequential-mass-url-opene/lgffephbjkjmkdipchghjadbeppgojhk");
+        });
+    },
+};
+reviewBoxDisplayer.onStartup();
+
+
+
 const linesSelectedDisplayer = {
     displayerElement: document.getElementById("lines-selected-number-span"),
     line_count: "",
