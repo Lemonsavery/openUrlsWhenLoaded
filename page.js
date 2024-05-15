@@ -145,7 +145,11 @@ let StoredData = {
         iterate: function() {
             const value = (this.get()+1) % this.N;
             this.set(value);
+            this.conditionallyShowReviewBox(value);
         },
+        conditionallyShowReviewBox: function(value) {
+            if (value == 0) reviewBoxDisplayer.showUnlessProhibited();
+        }, // Show review box after every Nth list is completed opening.
     },
     neverShowReviewDialogAgain: { // Should the review dialog box never be opened again?
         get: () => (localStorage.getItem("neverShowReviewDialogAgain") ?? "false") === "true",
@@ -305,6 +309,10 @@ const reviewBoxDisplayer = {
         this.neverShowAgainCheckboxElement.addEventListener("change", () => {
             StoredData.neverShowReviewDialogAgain.set(this.neverShowAgainCheckboxElement.checked);
         });
+    },
+    show: function() {this.dialogBoxElement.showModal()},
+    showUnlessProhibited: function() {
+        if (!StoredData.neverShowReviewDialogAgain.get()) this.show();
     },
 };
 reviewBoxDisplayer.onStartup();
@@ -502,6 +510,7 @@ function openTabWhenPriorIsLoaded(index) {
                 else if (StoredData.closeTabsOnAllComplete.value) { chrome.tabs.remove(allOpenedTabIds); } // Ignored if closeEachTabOnComplete is on, since redundant.
                 openButton.enable();
                 StoredData.openLimitedNumberThenDelete.removeThoseUrlsFromTextbox();
+                StoredData.completedListsModN.iterate();
                 if (StoredData.closeOnComplete.value) { window.close(); }
                 return;
             }
