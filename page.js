@@ -136,6 +136,26 @@ let StoredData = {
             }
         },
     },
+    completedListsModN: { // How many lists have been fully opened, mod N.
+        N: 4,
+        get: () => {
+            let x = parseInt(localStorage.getItem("completedListsModN"));
+            return isNaN(x) ? 0 : x;
+        },
+        set: (newVal) => localStorage.setItem("completedListsModN", newVal),
+        iterate: function() {
+            const value = (this.get()+1) % this.N;
+            this.set(value);
+            this.conditionallyShowReviewBox(value);
+        },
+        conditionallyShowReviewBox: function(value) {
+            if (value == 0) reviewBoxDisplayer.showUnlessProhibited();
+        }, // Show review box after every Nth list is completed opening.
+    },
+    neverShowReviewDialogAgain: { // Should the review dialog box never be opened again?
+        get: () => (localStorage.getItem("neverShowReviewDialogAgain") ?? "false") === "true",
+        set: (newVal) => localStorage.setItem("neverShowReviewDialogAgain", newVal),
+    },
     closeTabsOnAllComplete: { /* SETTING: (Special behavior) Once all the tabs have been loaded, should they all be closed? */
         value: (localStorage.getItem("closeTabsOnAllComplete") ?? "false") === "true",
         set: function(newVal) { this.value = newVal, localStorage.setItem("closeTabsOnAllComplete", newVal); },
@@ -339,6 +359,31 @@ for (key of StoredData._startupOrder) {
 
 
 
+const reviewBoxDisplayer = {
+    dialogBoxElement: document.getElementById("theReviewDialogBox"),
+    chromeWebstoreLinkButtonElement: document.getElementById("theReviewDialogBoxChromeWebStoreLinkButton"),
+    closeButtonElement: document.getElementById("theReviewDialogBoxCloseButton"),
+    neverShowAgainCheckboxElement: document.getElementById("theReviewDialogBoxNeverShowAgainCheckbox"),
+    onStartup: function() {
+        this.closeButtonElement.addEventListener("click", () => {
+            this.dialogBoxElement.close();
+        });
+        this.chromeWebstoreLinkButtonElement.addEventListener("click", () => {
+            window.open("https://chromewebstore.google.com/detail/sequential-mass-url-opene/lgffephbjkjmkdipchghjadbeppgojhk");
+        });
+        this.neverShowAgainCheckboxElement.addEventListener("change", () => {
+            StoredData.neverShowReviewDialogAgain.set(this.neverShowAgainCheckboxElement.checked);
+        });
+    },
+    show: function() {this.dialogBoxElement.showModal()},
+    showUnlessProhibited: function() {
+        if (!StoredData.neverShowReviewDialogAgain.get()) this.show();
+    },
+};
+reviewBoxDisplayer.onStartup();
+
+
+
 const linesSelectedDisplayer = {
     displayerElement: document.getElementById("lines-selected-number-span"),
     line_count: "",
@@ -539,6 +584,7 @@ function openTabWhenPriorIsLoaded(index) {
                 else if (StoredData.closeTabsOnAllComplete.value) { chrome.tabs.remove(allOpenedTabIds); } // Ignored if closeEachTabOnComplete is on, since redundant.
                 openButton.enable();
                 StoredData.openLimitedNumberThenDelete.removeThoseUrlsFromTextbox();
+                StoredData.completedListsModN.iterate();
                 if (StoredData.closeOnComplete.value) { window.close(); }
                 return;
             }
