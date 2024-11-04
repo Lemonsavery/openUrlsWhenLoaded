@@ -397,6 +397,7 @@ const linesSelectedDisplayer = {
             this.render();
         });
         
+        this.line_count = theTextArea.value.split(/\r|\r\n|\n/).length;
         this.render();
     },
     render: function() {
