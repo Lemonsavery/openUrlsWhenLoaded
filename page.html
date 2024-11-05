@@ -67,6 +67,12 @@
                 <p style="display: flex;"><input type="checkbox" id="openTabsInIncognito">Open tabs in incognito.</p>
                 <p style="display: flex;"><input type="checkbox" id="closeTabsOnAllComplete">Once all tabs are loaded, close them.</p>
                 <p style="display: flex;"><input type="checkbox" id="closeEachTabOnComplete">Once a tab is loaded, close it.</p>
+                <p style="display: flex;"><input type="checkbox" id="openTabAfterDelay" style="margin-bottom: auto;">
+                    <span><style>#openTabAfterDelay_seconds:hover { filter: brightness(0.95); }</style>
+                        Open each tab after a&nbsp;<input type="text" id="openTabAfterDelay_seconds" style="height: 1em; width: 5em; font-size: inherit; font-family: inherit;" class="uses-theme-colored-background uses-theme-colored-text"><br>delay (ignores loading).
+                    </span>
+                </p>
+
                 <p style="display: flex; justify-content: right; filter: opacity(0.6); position: absolute; bottom: 0; right: 0; margin-bottom: 0.6em;">
                     <span id="lines-selected-number-span"></span>&nbsp;lines selected
                 </p>
