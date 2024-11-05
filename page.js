@@ -334,6 +334,40 @@ let StoredData = {
         })(),
         HEXtoHSL: function(a){3===(a=a.replace(/#/g,"")).length&&(a=a.split("").map(function(a){return a+a}).join(""));var r=/^([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})[\da-z]{0,0}$/i.exec(a);if(!r)return null;var e=parseInt(r[1],16),n=parseInt(r[2],16),$=parseInt(r[3],16);e/=255;var i,t,u=Math.max(e,n/=255,$/=255),c=Math.min(e,n,$),d=(u+c)/2;if(u==c)i=t=0;else{var f=u-c;switch(t=d>.5?f/(2-u-c):f/(u+c),u){case e:i=(n-$)/f+(n<$?6:0);break;case n:i=($-e)/f+2;break;case $:i=(e-n)/f+4}i/=6}return t*=100,t=Math.round(t),d*=100,d=Math.round(d),{h:i=Math.round(360*i),s:t,l:d}}, // https://www.html-code-generator.com/javascript/color-converter-script
     },
+    openTabAfterDelay: { /* SETTING: Should each tab be opened after a delay, completely ignoring tab loading? */
+        value: (localStorage.getItem("openTabAfterDelay") ?? "false") === "true",
+        set: function(newVal) { this.value = newVal, localStorage.setItem("openTabAfterDelay", newVal); },
+        settingId: "openTabAfterDelay",
+        onStartup: function() {
+            let field = document.getElementById(this.settingId);
+            field.checked = this.value; // Set the default
+            field.addEventListener('change', () => this.set(field.checked));
+        },
+        getDelayInfoIfRelevant: function() {
+            return this.value ? {in_seconds: StoredData.openTabAfterDelay_seconds.value} : undefined;
+        },
+    },
+    openTabAfterDelay_seconds: { /* SETTING: If openTabAfterDelay is enabled, how long should the delay be in seconds? */
+        DEFAULT_VALUE_ON_INVALID_INPUT: 5,
+        MINIMUM_DELAY: 0.05, // 1/20th of a second
+        value: localStorage.getItem("openTabAfterDelay_seconds") ?? 5,
+        validate: function(value) {
+            value = typeof(value) === "string" ? parseFloat(value.replaceAll(/[^0-9.-]/g, "")) : value;
+            if (typeof(value) === "number" && !isNaN(value)) return Math.max(this.MINIMUM_DELAY, Math.min(value, 30000000)); // Must be larger than minimum delay, and I'm not going to try to support delays that approach a year.
+            return this.DEFAULT_VALUE_ON_INVALID_INPUT;
+        },
+        set: function(newVal) {
+            this.value = this.validate(newVal);
+            localStorage.setItem("openTabAfterDelay_seconds", this.value);
+            document.getElementById(this.settingId).value = `${this.value} sec`;
+        },
+        settingId: "openTabAfterDelay_seconds",
+        onStartup: function() {
+            let field = document.getElementById(this.settingId);
+            this.set(this.value);
+            field.addEventListener('change', () => this.set(field.value));
+        },
+    },
     _startupOrder: [
         "closeOnComplete",
         "openToolNewWindow",
@@ -350,6 +384,8 @@ let StoredData = {
         "suspendBeyondMaxTabs",
         "suspendBeyondMaxTabs_number",
         "themeColor",
+        "openTabAfterDelay",
+        "openTabAfterDelay_seconds",
     ],
 };
 
@@ -545,7 +581,7 @@ async function openUrls() {
                 allOpenedTabIds.push(priorTabId);
                 windowId = result.id;
                 tabTitleCounter.iterate();
-                openTabWhenPriorIsLoaded(1);
+                openTabWhenPriorIsLoaded(1, StoredData.openTabAfterDelay.getDelayInfoIfRelevant());
             });
         } else { // Open tabs into current window. Incognito is not an option here.
             const createFirstTab = () => {
@@ -559,7 +595,7 @@ async function openUrls() {
                     allOpenedTabIds.push(priorTabId);
                     windowId = undefined;
                     tabTitleCounter.iterate();
-                    openTabWhenPriorIsLoaded(1);
+                    openTabWhenPriorIsLoaded(1, StoredData.openTabAfterDelay.getDelayInfoIfRelevant());
                 });
             };
             // If max tabs is already reached before starting, then wait just like a normal interrupt.
@@ -574,9 +610,11 @@ async function openUrls() {
 
 let windowId = undefined;
 let priorTabId = undefined;
-function openTabWhenPriorIsLoaded(index) {
+function openTabWhenPriorIsLoaded(index, delay) {
     const thisListener = (tabId, info) => {
-        if (tabId === priorTabId && (info.status === "complete" || info.isWindowClosing !== undefined)) {
+        if (delay
+        || (tabId === priorTabId && (info.status === "complete" || info.isWindowClosing !== undefined))
+        ) {
             if (index >= urlList.length) { // Stop once urlList is fully iterated (AND LOADED).
                 console.log("All urls have been loaded fully");
                 chrome.tabs.onUpdated.removeListener(thisListener);
@@ -602,7 +640,7 @@ function openTabWhenPriorIsLoaded(index) {
                 priorTabId = result.id;
                 allOpenedTabIds.push(priorTabId);
                 tabTitleCounter.iterate();
-                openTabWhenPriorIsLoaded(++index);
+                openTabWhenPriorIsLoaded(++index, StoredData.openTabAfterDelay.getDelayInfoIfRelevant());
                 chrome.tabs.onUpdated.removeListener(thisListener);
                 chrome.tabs.onRemoved.removeListener(thisListener);
             })
@@ -631,8 +669,13 @@ function openTabWhenPriorIsLoaded(index) {
             })(); // async wrapper here means I don't need to make thisListener and openTabWhenPriorIsLoaded async.
         }
     }
-    chrome.tabs.onUpdated.addListener(thisListener);
-    chrome.tabs.onRemoved.addListener(thisListener);
+
+    if (delay) { // We'll either wait for one of these events, or wait for the delay instead.
+        setTimeout(thisListener, delay.in_seconds * 1000);
+    } else {
+        chrome.tabs.onUpdated.addListener(thisListener);
+        chrome.tabs.onRemoved.addListener(thisListener);
+    }
 }
 
 async function isPausedOrMaxTabsReached() {
