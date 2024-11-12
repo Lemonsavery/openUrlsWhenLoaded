@@ -571,10 +571,10 @@ async function openUrls() {
             return;
         }
 
-        const setUpNextTabOpening = () => {
-            allOpenedTabIds.push(priorTabId);
+        const setUpNextTabOpening = prior_tab_id => {
+            allOpenedTabIds.push(prior_tab_id);
             tabTitleCounter.iterate();
-            openTabWhenPriorIsLoaded(StoredData.openTabAfterDelay.getDelayInfoIfRelevant());
+            openTabWhenPriorIsLoaded(prior_tab_id, StoredData.openTabAfterDelay.getDelayInfoIfRelevant());
         };
 
         if (!StoredData.openTabsSameWindow.value) { // Open tabs into a new window.
@@ -585,9 +585,8 @@ async function openUrls() {
             })
             .then((result) => {
                 // Begin opening rest of urls.
-                priorTabId = result.tabs[0].id;
                 windowId = result.id;
-                setUpNextTabOpening();
+                setUpNextTabOpening(result.tabs[0].id);
             });
         } else { // Open tabs into current window. Incognito is not an option here.
             const createFirstTab = () => {
@@ -597,9 +596,8 @@ async function openUrls() {
                 })
                 .then((result) => {
                     // Begin opening rest of urls.
-                    priorTabId = result.id;
                     windowId = undefined;
-                    setUpNextTabOpening();
+                    setUpNextTabOpening(result.id);
                 });
             };
             // If max tabs is already reached before starting, then wait just like a normal interrupt.
@@ -613,16 +611,15 @@ async function openUrls() {
 }
 
 let windowId = undefined;
-let priorTabId = undefined;
-function openTabWhenPriorIsLoaded(delay) {
+function openTabWhenPriorIsLoaded(prior_tab_id, delay) {
     const thisListener = (tabId, info) => {
         if (delay
-        || (tabId === priorTabId && (info.status === "complete" || info.isWindowClosing !== undefined))
+        || (tabId === prior_tab_id && (info.status === "complete" || info.isWindowClosing !== undefined))
         ) {
             if (unopenedUrlListIndices.length == 0) { // Stop once urlList is fully iterated (AND LOADED).
                 chrome.tabs.onUpdated.removeListener(thisListener);
                 chrome.tabs.onRemoved.removeListener(thisListener);
-                if (StoredData.closeEachTabOnComplete.value) { StoredData.closeEachTabOnComplete.removeTab(priorTabId); }
+                if (StoredData.closeEachTabOnComplete.value) { StoredData.closeEachTabOnComplete.removeTab(prior_tab_id); }
                 console.log("All urls have been loaded fully");
                 if (StoredData.closeTabsOnAllComplete.value) { chrome.tabs.remove(allOpenedTabIds); }
                 openButton.enable();
@@ -641,11 +638,11 @@ function openTabWhenPriorIsLoaded(delay) {
             })
             .then(function(result) {
                 // Prepare for the newly created tab to load, hense creating another tab.
-                if (StoredData.closeEachTabOnComplete.value) { StoredData.closeEachTabOnComplete.removeTab(priorTabId); }
-                priorTabId = result.id;
-                allOpenedTabIds.push(priorTabId);
+                if (StoredData.closeEachTabOnComplete.value) { StoredData.closeEachTabOnComplete.removeTab(prior_tab_id); }
+                prior_tab_id = result.id;
+                allOpenedTabIds.push(prior_tab_id);
                 tabTitleCounter.iterate();
-                openTabWhenPriorIsLoaded(StoredData.openTabAfterDelay.getDelayInfoIfRelevant());
+                openTabWhenPriorIsLoaded(prior_tab_id, StoredData.openTabAfterDelay.getDelayInfoIfRelevant());
                 chrome.tabs.onUpdated.removeListener(thisListener);
                 chrome.tabs.onRemoved.removeListener(thisListener);
             })
