@@ -550,6 +550,7 @@ https://www.google.com/search?q=shirt
 https://www.google.com/search?q=pants
 `.trim();
 let urlList = undefined;
+let unopenedUrlListIndices = undefined;
 let allOpenedTabIds = undefined;
 async function openUrls() {
     allOpenedTabIds = [];
@@ -557,6 +558,7 @@ async function openUrls() {
 
     urlList = getUrls();
     urlList = urlList.length > 0 ? urlList : getUrls(exampleUrls); // Use the example urls if text is empty.
+    unopenedUrlListIndices = [...Array(urlList.length).keys()].reverse(); // [..., 3, 2, 1, 0]
     tabTitleCounter.reset();
     tabTitleCounter.total = urlList.length;
 
@@ -577,7 +579,7 @@ async function openUrls() {
 
         if (!StoredData.openTabsSameWindow.value) { // Open tabs into a new window.
             chrome.windows.create({ // Only the first url is opened this here.
-                "url": urlList[0],
+                "url": urlList[unopenedUrlListIndices.pop()],
                 "incognito": useIncognito,
                 "state": "minimized"
             })
@@ -590,7 +592,7 @@ async function openUrls() {
         } else { // Open tabs into current window. Incognito is not an option here.
             const createFirstTab = () => {
                 chrome.tabs.create({ // Only the first url is opened this here.
-                    "url": urlList[0],
+                    "url": urlList[unopenedUrlListIndices.pop()],
                     "active": false
                 })
                 .then((result) => {
@@ -612,12 +614,12 @@ async function openUrls() {
 
 let windowId = undefined;
 let priorTabId = undefined;
-function openTabWhenPriorIsLoaded(index, delay) {
+function openTabWhenPriorIsLoaded(delay) {
     const thisListener = (tabId, info) => {
         if (delay
         || (tabId === priorTabId && (info.status === "complete" || info.isWindowClosing !== undefined))
         ) {
-            if (index >= urlList.length) { // Stop once urlList is fully iterated (AND LOADED).
+            if (unopenedUrlListIndices.length == 0) { // Stop once urlList is fully iterated (AND LOADED).
                 chrome.tabs.onUpdated.removeListener(thisListener);
                 chrome.tabs.onRemoved.removeListener(thisListener);
                 if (StoredData.closeEachTabOnComplete.value) { StoredData.closeEachTabOnComplete.removeTab(priorTabId); }
@@ -631,6 +633,7 @@ function openTabWhenPriorIsLoaded(index, delay) {
             }
 
             // The tab has loaded or been closed. Time to make another.
+            const index = unopenedUrlListIndices.pop();
             const createTab = () => chrome.tabs.create({
                 "url": urlList[index],
                 "active": false,
@@ -642,7 +645,7 @@ function openTabWhenPriorIsLoaded(index, delay) {
                 priorTabId = result.id;
                 allOpenedTabIds.push(priorTabId);
                 tabTitleCounter.iterate();
-                openTabWhenPriorIsLoaded(++index, StoredData.openTabAfterDelay.getDelayInfoIfRelevant());
+                openTabWhenPriorIsLoaded(StoredData.openTabAfterDelay.getDelayInfoIfRelevant());
                 chrome.tabs.onUpdated.removeListener(thisListener);
                 chrome.tabs.onRemoved.removeListener(thisListener);
             })
