@@ -569,6 +569,12 @@ async function openUrls() {
             return;
         }
 
+        const setUpNextTabOpening = () => {
+            allOpenedTabIds.push(priorTabId);
+            tabTitleCounter.iterate();
+            openTabWhenPriorIsLoaded(StoredData.openTabAfterDelay.getDelayInfoIfRelevant());
+        };
+
         if (!StoredData.openTabsSameWindow.value) { // Open tabs into a new window.
             chrome.windows.create({ // Only the first url is opened this here.
                 "url": urlList[0],
@@ -578,10 +584,8 @@ async function openUrls() {
             .then((result) => {
                 // Begin opening rest of urls.
                 priorTabId = result.tabs[0].id;
-                allOpenedTabIds.push(priorTabId);
                 windowId = result.id;
-                tabTitleCounter.iterate();
-                openTabWhenPriorIsLoaded(1, StoredData.openTabAfterDelay.getDelayInfoIfRelevant());
+                setUpNextTabOpening();
             });
         } else { // Open tabs into current window. Incognito is not an option here.
             const createFirstTab = () => {
@@ -592,10 +596,8 @@ async function openUrls() {
                 .then((result) => {
                     // Begin opening rest of urls.
                     priorTabId = result.id;
-                    allOpenedTabIds.push(priorTabId);
                     windowId = undefined;
-                    tabTitleCounter.iterate();
-                    openTabWhenPriorIsLoaded(1, StoredData.openTabAfterDelay.getDelayInfoIfRelevant());
+                    setUpNextTabOpening();
                 });
             };
             // If max tabs is already reached before starting, then wait just like a normal interrupt.
@@ -616,11 +618,11 @@ function openTabWhenPriorIsLoaded(index, delay) {
         || (tabId === priorTabId && (info.status === "complete" || info.isWindowClosing !== undefined))
         ) {
             if (index >= urlList.length) { // Stop once urlList is fully iterated (AND LOADED).
-                console.log("All urls have been loaded fully");
                 chrome.tabs.onUpdated.removeListener(thisListener);
                 chrome.tabs.onRemoved.removeListener(thisListener);
                 if (StoredData.closeEachTabOnComplete.value) { StoredData.closeEachTabOnComplete.removeTab(priorTabId); }
-                else if (StoredData.closeTabsOnAllComplete.value) { chrome.tabs.remove(allOpenedTabIds); } // Ignored if closeEachTabOnComplete is on, since redundant.
+                console.log("All urls have been loaded fully");
+                if (StoredData.closeTabsOnAllComplete.value) { chrome.tabs.remove(allOpenedTabIds); }
                 openButton.enable();
                 StoredData.openLimitedNumberThenDelete.removeThoseUrlsFromTextbox();
                 StoredData.completedListsModN.iterate();
